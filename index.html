@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Lost & Found System</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container navbar">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🔍</span>
+        CampusFind
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="items.html">View Items</a>
+        <a href="report.html">Report Item</a>
+        <a href="#how-it-works">How It Works</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-outline" id="navLoginBtn">Login</a>
+        <a href="signup.html" class="btn btn-primary" id="navSignupBtn">Sign Up</a>
+        <a href="#" class="btn btn-danger" id="navLogoutBtn" style="display:none; background:#dc2626; color:white;">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <div class="badge">🎓 Campus-specific lost & found platform</div>
+        <h1>Lost something on campus? <span>Find it faster.</span></h1>
+        <p>
+          Report lost and found items, get automatic smart matches based on category,
+          color, location, and date, verify ownership, and track the full recovery process.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="report.html" class="btn btn-primary">Report Lost Item</a>
+          <a href="report.html" class="btn btn-accent">Report Found Item</a>
+        </div>
+
+        <form class="search-box" action="items.html" method="get">
+          <div class="search-grid">
+            <select name="category" aria-label="Category">
+              <option value="">Category</option>
+              <option>Wallet</option>
+              <option>ID Card</option>
+              <option>Phone</option>
+              <option>Bag</option>
+              <option>Keys</option>
+              <option>Books</option>
+              <option>Other</option>
+            </select>
+
+            <select name="location" aria-label="Location">
+              <option value="">Campus Location</option>
+              <option>Library</option>
+              <option>Cafeteria</option>
+              <option>Academic Building</option>
+              <option>Bus Stand</option>
+              <option>Playground</option>
+              <option>Hostel</option>
+            </select>
+
+            <input type="date" name="date" aria-label="Date" />
+
+            <button type="submit" class="btn btn-primary">Search</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Visual -->
+      <div class="hero-visual">
+        <div class="visual-header">
+          <h3><span class="live-dot"></span>Recent Items</h3>
+          <a href="items.html" style="font-size: 0.8rem; color: var(--primary); font-weight:600;">View All</a>
+        </div>
+
+        <div class="match-card">
+          <div class="match-top">
+            <span class="match-title">Black Leather Wallet</span>
+            <span class="match-score">Lost</span>
+          </div>
+          <div class="match-meta">
+            <span>📁 Wallet</span>
+            <span>📍 Library</span>
+          </div>
+        </div>
+
+        <div class="match-card">
+          <div class="match-top">
+            <span class="match-title">Blue Water Bottle</span>
+            <span class="match-score" style="background:#fee2e2; color:#991b1b;">Found</span>
+          </div>
+          <div class="match-meta">
+            <span>📁 Bottle</span>
+            <span>📍 Cafeteria</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats">
+    <div class="container stats-grid">
+      <div class="stat-card"><h3>1,240+</h3><p>Items Reported</p></div>
+      <div class="stat-card"><h3>860+</h3><p>Items Returned</p></div>
+      <div class="stat-card"><h3>72%</h3><p>Successful Match Rate</p></div>
+      <div class="stat-card"><h3>24/7</h3><p>Online Reporting</p></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-bottom" style="justify-content: center;">
+        <span>© 2026 CampusFind. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Check if user is logged in to change the navbar buttons
+    const token = localStorage.getItem('token');
+    if (token) {
+      document.getElementById('navLoginBtn').style.display = 'none';
+      document.getElementById('navSignupBtn').style.display = 'none';
+      document.getElementById('navLogoutBtn').style.display = 'inline-block';
+    }
+
+    // Logout function
+    document.getElementById('navLogoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      localStorage.removeItem('token');
+      localStorage.removeItem('studentId');
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>
