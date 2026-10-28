@@ -20,6 +20,8 @@
         <a href="index.html">Home</a>
         <a href="items.html">View Items</a>
         <a href="report.html">Report Item</a>
+        <!-- NEW DASHBOARD LINK (Hidden by default until logged in) -->
+        <a href="dashboard.html" id="navDashBtn" style="display:none; font-weight: 700; color: var(--primary);">My Dashboard</a>
         <a href="#how-it-works">How It Works</a>
       </nav>
 
@@ -64,7 +66,6 @@
               <option>Other</option>
             </select>
 
-            <!-- UPDATED LOCATIONS HERE -->
             <select name="location" aria-label="Location">
               <option value="">Campus Location</option>
               <option>Academic Building 1</option>
@@ -116,14 +117,17 @@
   </footer>
 
   <script>
-    // 1. Check Auth to show Logout button
+    // 1. Check Auth to change Navbar buttons
     const token = localStorage.getItem('token');
     if (token) {
       document.getElementById('navLoginBtn').style.display = 'none';
       document.getElementById('navSignupBtn').style.display = 'none';
       document.getElementById('navLogoutBtn').style.display = 'inline-block';
+      // Show Dashboard link
+      document.getElementById('navDashBtn').style.display = 'inline-block';
     }
 
+    // Logout function
     document.getElementById('navLogoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
       localStorage.removeItem('token');
