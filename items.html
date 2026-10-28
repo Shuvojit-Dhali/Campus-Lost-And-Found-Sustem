@@ -11,40 +11,34 @@
     .page-header p { color: #64748b; }
     
     .items-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px; }
     
-    .items-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-      gap: 20px; 
-      margin-top: 30px;
-    }
-
-    .item-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-      transition: transform 0.2s;
-    }
-
+    .item-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.05); transition: transform 0.2s; display: flex; flex-direction: column; justify-content: space-between; }
     .item-card:hover { transform: translateY(-3px); }
     
     .item-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; }
     .badge-lost { background: #fee2e2; color: #dc2626; }
     .badge-found { background: #dcfce7; color: #16a34a; }
-
+    
     .item-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; color: #0f172a; }
     .item-detail { color: #64748b; font-size: 0.9rem; margin-bottom: 5px; }
     .item-detail strong { color: #334155; }
     
-    .error-msg { text-align: center; color: #dc2626; margin-top: 40px; font-size: 1.1rem; }
-    .loading-msg { text-align: center; color: #64748b; margin-top: 40px; }
+    .action-btn { width: 100%; margin-top: 15px; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; display: block;}
+    
+    /* Different colors for different actions */
+    .btn-claim { background: #2563eb; color: white; }
+    .btn-claim:hover { background: #1d4ed8; }
+    .btn-return { background: #16a34a; color: white; }
+    .btn-return:hover { background: #15803d; }
+    
+    .hidden-notice { font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-top: 10px; text-align: center; padding-top: 10px; border-top: 1px dashed #e2e8f0;}
+    
+    .filter-banner { background: #e0f2fe; color: #0369a1; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 600; display: none; }
   </style>
 </head>
 <body style="background: #f8fafc;">
 
-  <!-- Header -->
   <header>
     <div class="container navbar">
       <a href="index.html" class="logo"><span class="logo-icon">🔍</span> CampusFind</a>
@@ -57,74 +51,138 @@
 
   <div class="page-header">
     <h1>All Reported Items</h1>
-    <p>Browse through items reported by students across the campus.</p>
+    <p>Browse items reported by students across the campus.</p>
   </div>
 
   <div class="items-container">
-    <div id="loading" class="loading-msg">Loading items from the server...</div>
-    <div id="errorBox" class="error-msg" style="display: none;"></div>
+    <div id="filterBanner" class="filter-banner"></div>
     
     <div class="items-grid" id="itemsGrid">
-      <!-- Items will be injected here by JavaScript -->
+      <p style="text-align: center; width: 100%; color: #64748b;">Loading items...</p>
     </div>
   </div>
 
   <script>
-    // We use 127.0.0.1 instead of localhost to avoid CORS issues in some browsers
-    const API_URL = 'http://127.0.0.1:5000/api/items';
+    const token = localStorage.getItem('token');
+    const studentId = localStorage.getItem('studentId');
+
+    // Get URL search parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterCategory = urlParams.get('category');
+    const filterLocation = urlParams.get('location');
+    const filterDate = urlParams.get('date');
+
+    // Show filter banner
+    if (filterCategory || filterLocation || filterDate) {
+      const banner = document.getElementById('filterBanner');
+      banner.style.display = 'block';
+      let activeFilters = [];
+      if (filterCategory) activeFilters.push(`Category: ${filterCategory}`);
+      if (filterLocation) activeFilters.push(`Location: ${filterLocation}`);
+      if (filterDate) activeFilters.push(`Date: ${filterDate}`);
+      banner.innerHTML = `Showing results for: <strong>${activeFilters.join(' | ')}</strong> <a href="items.html" style="margin-left:15px; color:#dc2626; font-size:0.9rem;">Clear Search</a>`;
+    }
 
     async function loadItems() {
-      const loading = document.getElementById('loading');
-      const errorBox = document.getElementById('errorBox');
       const grid = document.getElementById('itemsGrid');
-
+      
       try {
-        const response = await fetch(API_URL);
+        const response = await fetch('http://localhost:5000/api/items');
+        let items = await response.json();
         
-        if (!response.ok) {
-          throw new Error('Server responded with an error');
+        // Apply Filters
+        if (filterCategory) items = items.filter(item => item.category.toLowerCase() === filterCategory.toLowerCase());
+        if (filterLocation) items = items.filter(item => item.building.toLowerCase() === filterLocation.toLowerCase());
+        if (filterDate) {
+          items = items.filter(item => new Date(item.date).toISOString().split('T')[0] === filterDate);
         }
 
-        const items = await response.json();
-        
-        loading.style.display = 'none';
-
         if (items.length === 0) {
-          grid.innerHTML = '<p style="text-align:center; width:100%; color:#64748b;">No items reported yet. Be the first!</p>';
+          grid.innerHTML = '<p style="text-align:center; width:100%; color:#64748b; font-size:1.1rem;">No items found matching your search.</p>';
           return;
         }
 
-        // Loop through each item and create a card
+        grid.innerHTML = ''; 
+
         items.forEach(item => {
           const date = new Date(item.date).toLocaleDateString();
-          
           const card = document.createElement('div');
           card.className = 'item-card';
           
-          card.innerHTML = `${item.hasPhoto ? '<img src="http://127.0.0.1:5000/api/items/' + item._id + '/photo" alt="Item photo" style="width:100%;height:170px;object-fit:cover;border-radius:10px;margin-bottom:12px;">' : ''}
-            <span class="item-badge ${item.type === 'lost' ? 'badge-lost' : 'badge-found'}">
-              ${item.type.toUpperCase()}
-            </span>
-            <h3 class="item-title">${item.title}</h3>
-            <p class="item-detail"><strong>Category:</strong> ${item.category}</p>
-            <p class="item-detail"><strong>Location:</strong> ${item.location}</p>
-            <p class="item-detail"><strong>Date:</strong> ${date}</p>
-            <p class="item-detail"><strong>Color:</strong> ${item.color || 'N/A'}</p>
-            <p class="item-detail" style="margin-top: 10px; font-style: italic;">"${item.description || 'No description provided'}"</p>
+          let actionButton = '';
+
+          // CHECK: Is this my own item?
+          if (item.reportedBy === studentId) {
+            actionButton = `<div style="text-align:center; color:#64748b; font-size:0.9rem; margin-top:15px; font-weight:600;">Your Own Report</div>`;
+          } 
+          // IF NOT LOGGED IN
+          else if (!token) {
+             actionButton = `<a href="login.html" class="action-btn btn-claim">Login to Interact</a>`;
+          } 
+          // IF IT'S A FOUND ITEM (The person looking might be the owner)
+          else if (item.type === 'found') {
+            actionButton = `<button class="action-btn btn-claim" onclick="interactItem('${item._id}', 'claim')">This is Mine (Claim)</button>`;
+          } 
+          // IF IT'S A LOST ITEM (The person looking might be the finder)
+          else if (item.type === 'lost') {
+            actionButton = `<button class="action-btn btn-return" onclick="interactItem('${item._id}', 'return')">I Found This (Return)</button>`;
+          }
+
+          card.innerHTML = `
+            <div>
+              <span class="item-badge ${item.type === 'lost' ? 'badge-lost' : 'badge-found'}">
+                ${item.type.toUpperCase()}
+              </span>
+              <h3 class="item-title">${item.title}</h3>
+              <p class="item-detail"><strong>Category:</strong> ${item.category}</p>
+              <p class="item-detail"><strong>Color:</strong> ${item.color}</p>
+              <p class="item-detail"><strong>Location:</strong> ${item.building}, Floor ${item.floor}, Room ${item.room}</p>
+              <p class="item-detail"><strong>Date:</strong> ${date}</p>
+            </div>
+            
+            <div>
+              <div class="hidden-notice">📷 Photo & Description hidden for privacy</div>
+              ${actionButton}
+            </div>
           `;
-          
           grid.appendChild(card);
         });
-
+        
       } catch (error) {
-        loading.style.display = 'none';
-        errorBox.style.display = 'block';
-        errorBox.innerHTML = 'Error connecting to server. Make sure backend is running.<br><small>' + error.message + '</small>';
-        console.error('Fetch error:', error);
+        grid.innerHTML = '<p style="color:red;text-align:center; width:100%;">Failed to load items. Is the server running?</p>';
       }
     }
 
-    // Run the function when the page loads
+    async function interactItem(itemId, actionType) {
+      if (!token) return window.location.href = 'login.html';
+      
+      const message = actionType === 'claim' 
+        ? 'Are you sure this is your item? The Admin will be notified to verify your claim.' 
+        : 'Are you sure you found this item? The owner will be notified.';
+
+      if (!confirm(message)) return;
+
+      try {
+        // For both claim and return, we update the status to 'claimed' 
+        // and set the claimedBy to the person interacting with it.
+        const response = await fetch(`http://localhost:5000/api/items/${itemId}/claim`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ claimedBy: studentId })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          alert('Action successful! Go to your dashboard to view the private photo and details.');
+          window.location.href = 'dashboard.html';
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        alert('Failed to process request.');
+      }
+    }
+
     loadItems();
   </script>
 </body>

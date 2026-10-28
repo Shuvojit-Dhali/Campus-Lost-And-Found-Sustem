@@ -6,16 +6,19 @@
   <title>Report Item — CampusFind</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .form-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 14px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08); border: 1px solid var(--border); }
+    .form-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 14px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0; }
     .form-group { margin-bottom: 18px; }
-    .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--text); }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; outline: none; transition: 0.2s; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #0f172a; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 1rem; outline: none; }
     .radio-group { display: flex; gap: 20px; }
     .radio-group label { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; }
-    .submit-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1.1rem; transition: 0.2s; margin-top: 10px; }
-    .submit-btn:hover { background: var(--primary-dark); }
+    .submit-btn { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1.1rem; transition: 0.2s; margin-top: 10px; }
+    .submit-btn:hover { background: #1d4ed8; }
     .message { display: none; padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center; font-weight: 600; }
+    
+    /* Grid for Location inputs */
+    .location-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    @media (max-width: 500px) { .location-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body style="background: #f8fafc;">
@@ -23,13 +26,13 @@
   <header>
     <div class="container navbar">
       <a href="index.html" class="logo"><span class="logo-icon">🔍</span> CampusFind</a>
-      <a href="index.html" class="btn btn-outline">← Back to Home</a>
+      <a href="dashboard.html" class="btn btn-outline">← Dashboard</a>
     </div>
   </header>
 
   <div class="form-container">
-    <h2 style="margin-bottom: 5px; color: var(--text);">Report an Item</h2>
-    <p style="color: var(--muted); margin-bottom: 25px; font-size: 0.95rem;">Fill out the details below to report a lost or found item.</p>
+    <h2 style="margin-bottom: 5px; color: #0f172a;">Report an Item</h2>
+    <p style="color: #64748b; margin-bottom: 25px; font-size: 0.95rem;">Fill out the details below. Photos are kept private and only used for verification.</p>
     
     <div id="message" class="message"></div>
 
@@ -41,10 +44,11 @@
       </div>
 
       <div class="form-group">
-        <label>Item Title (e.g., Black Leather Wallet)</label>
-        <input type="text" id="title" placeholder="Enter item name" required>
+        <label>Item Title</label>
+        <input type="text" id="title" placeholder="e.g., Black Leather Wallet" required>
       </div>
 
+      <!-- UPDATED CATEGORIES HERE -->
       <div class="form-group">
         <label>Category</label>
         <select id="category" required>
@@ -52,29 +56,78 @@
           <option>Wallet</option>
           <option>ID Card</option>
           <option>Phone</option>
+          <option>Laptop</option>
           <option>Bag</option>
           <option>Keys</option>
           <option>Books</option>
+          <option>Clothing</option>
+          <option>Accessories</option>
           <option>Other</option>
         </select>
       </div>
 
       <div class="form-group">
         <label>Color</label>
-        <input type="text" id="color" placeholder="e.g., Black, Blue, Red">
+        <input type="text" id="color" placeholder="e.g., Black, Blue, Red" required>
       </div>
 
+      <!-- UPDATED LOCATION SYSTEM HERE -->
       <div class="form-group">
         <label>Campus Location</label>
-        <select id="location" required>
-          <option value="">Select Location</option>
-          <option>Library</option>
-          <option>Cafeteria</option>
-          <option>Academic Building</option>
-          <option>Bus Stand</option>
-          <option>Playground</option>
-          <option>Hostel</option>
-        </select>
+        <div class="location-grid">
+          
+          <select id="building" required>
+            <option value="">Building / Place</option>
+            <option>Academic Building 1</option>
+            <option>Academic Building 2</option>
+            <option>Canteen</option>
+            <option>Library</option>
+            <option>Reception</option>
+            <option>Office Room</option>
+            <option>Hostel</option>
+          </select>
+
+          <select id="floor" required>
+            <option value="">Floor / Area</option>
+            <option>Ground Floor</option>
+            <option>1st Floor</option>
+            <option>2nd Floor</option>
+            <option>3rd Floor</option>
+            <option>4th Floor</option>
+            <option>5th Floor</option>
+            <option>6th Floor</option>
+            <option>7th Floor</option>
+            <option>8th Floor</option>
+            <option>9th Floor</option>
+            <option>10th Floor</option>
+            <option>Not Applicable</option>
+          </select>
+
+          <select id="room" required>
+            <option value="">Room / Specific Area</option>
+            <!-- General Building Rooms -->
+            <option>1001</option>
+            <option>1002</option>
+            <option>1003</option>
+            <option>1004</option>
+            <option>1005</option>
+            <option>2001</option>
+            <option>2002</option>
+            <option>2003</option>
+            <option>2004</option>
+            <option>2005</option>
+            <!-- Special Areas -->
+            <option>Canteen Seating Area</option>
+            <option>Canteen Counter</option>
+            <option>Library Reading Room</option>
+            <option>Library Shelves</option>
+            <option>Reception Desk</option>
+            <option>Main Office</option>
+            <option>Common Area / Hallway</option>
+            <option>Washroom</option>
+          </select>
+
+        </div>
       </div>
 
       <div class="form-group">
@@ -83,12 +136,13 @@
       </div>
 
       <div class="form-group">
-        <label>Description (Any unique details to prove ownership)</label>
-        <textarea id="description" rows="3" placeholder="e.g., Has a scratch on the back, contains a specific ID card, etc."></textarea>
+        <label>Description (Details to prove ownership)</label>
+        <textarea id="description" rows="3" placeholder="e.g., Has a scratch on the back, contains a specific ID card, etc." required></textarea>
       </div>
 
+      <!-- PHOTO UPLOAD -->
       <div class="form-group">
-        <label>Photo (optional, helps prove ownership)</label>
+        <label>Upload Photo (Optional but helps AI matching)</label>
         <input type="file" id="photo" accept="image/*">
       </div>
 
@@ -97,7 +151,6 @@
   </div>
 
   <script>
-    // 1. Check if user is logged in
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
 
@@ -106,36 +159,33 @@
       window.location.href = 'login.html';
     }
 
-    // 2. Handle Form Submission
     document.getElementById('reportForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const msgBox = document.getElementById('message');
       msgBox.style.display = 'none';
 
-      // Build the form (text fields + optional photo)
       const formData = new FormData();
       formData.append('type', document.querySelector('input[name="type"]:checked').value);
       formData.append('title', document.getElementById('title').value);
       formData.append('category', document.getElementById('category').value);
       formData.append('color', document.getElementById('color').value);
-      formData.append('location', document.getElementById('location').value);
+      formData.append('building', document.getElementById('building').value);
+      formData.append('floor', document.getElementById('floor').value);
+      formData.append('room', document.getElementById('room').value);
       formData.append('date', document.getElementById('date').value);
       formData.append('description', document.getElementById('description').value);
       formData.append('reportedBy', studentId);
 
-      const photo = document.getElementById('photo').files[0];
-      if (photo && photo.size > 5 * 1024 * 1024) {
-        msgBox.style.background = '#fee2e2';
-        msgBox.style.color = '#991b1b';
-        msgBox.textContent = 'Photo is too big. Please choose an image under 5 MB.';
-        msgBox.style.display = 'block';
-        return;
-      }
-      if (photo) formData.append('photo', photo);
+      const photoFile = document.getElementById('photo').files[0];
+      if (photoFile) formData.append('photo', photoFile);
 
       try {
-        // Send to backend (no Content-Type header: the browser sets it for files)
+        msgBox.textContent = "Uploading and analyzing photo... Please wait.";
+        msgBox.style.background = '#e0f2fe';
+        msgBox.style.color = '#0369a1';
+        msgBox.style.display = 'block';
+
         const response = await fetch('http://localhost:5000/api/items', {
           method: 'POST',
           body: formData
@@ -144,25 +194,24 @@
         const data = await response.json();
 
         if (response.ok) {
+          if (data.matchesFound > 0) {
+            alert(`Success! We also found ${data.matchesFound} potential match(es) using AI image recognition.`);
+          }
+          
           msgBox.style.background = '#dcfce7';
           msgBox.style.color = '#166534';
-          msgBox.textContent = 'Item reported successfully! Redirecting to view items...';
-          msgBox.style.display = 'block';
+          msgBox.textContent = 'Item reported successfully! Redirecting to dashboard...';
           
-          setTimeout(() => {
-            window.location.href = 'items.html';
-          }, 1500);
+          setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
         } else {
           msgBox.style.background = '#fee2e2';
           msgBox.style.color = '#991b1b';
           msgBox.textContent = data.message || 'Failed to report item.';
-          msgBox.style.display = 'block';
         }
       } catch (error) {
         msgBox.style.background = '#fee2e2';
         msgBox.style.color = '#991b1b';
         msgBox.textContent = 'Cannot connect to server. Is the backend running?';
-        msgBox.style.display = 'block';
       }
     });
   </script>

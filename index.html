@@ -19,7 +19,6 @@
       <nav class="nav-links">
         <a href="index.html">Home</a>
         <a href="items.html">View Items</a>
-        <a href="dashboard.html">My Dashboard</a>
         <a href="report.html">Report Item</a>
         <a href="#how-it-works">How It Works</a>
       </nav>
@@ -48,26 +47,32 @@
           <a href="report.html" class="btn btn-accent">Report Found Item</a>
         </div>
 
-        <form class="search-box" action="items.html" method="get">
+        <!-- SEARCH FORM -->
+        <form class="search-box" action="items.html" method="get" id="searchForm">
           <div class="search-grid">
             <select name="category" aria-label="Category">
               <option value="">Category</option>
               <option>Wallet</option>
               <option>ID Card</option>
               <option>Phone</option>
+              <option>Laptop</option>
               <option>Bag</option>
               <option>Keys</option>
               <option>Books</option>
+              <option>Clothing</option>
+              <option>Accessories</option>
               <option>Other</option>
             </select>
 
+            <!-- UPDATED LOCATIONS HERE -->
             <select name="location" aria-label="Location">
               <option value="">Campus Location</option>
+              <option>Academic Building 1</option>
+              <option>Academic Building 2</option>
+              <option>Canteen</option>
               <option>Library</option>
-              <option>Cafeteria</option>
-              <option>Academic Building</option>
-              <option>Bus Stand</option>
-              <option>Playground</option>
+              <option>Reception</option>
+              <option>Office Room</option>
               <option>Hostel</option>
             </select>
 
@@ -84,10 +89,9 @@
           <h3><span class="live-dot"></span>Recent Items</h3>
           <a href="items.html" style="font-size: 0.8rem; color: var(--primary); font-weight:600;">View All</a>
         </div>
-
-        <div id="recentItems"></div>
-
-        
+        <div id="recentItems">
+            <p style="color: #64748b; font-size: 0.9rem;">Loading recent items...</p>
+        </div>
       </div>
     </div>
   </section>
@@ -95,8 +99,8 @@
   <!-- Stats -->
   <section class="stats">
     <div class="container stats-grid">
-      <div class="stat-card"><h3>1,240+</h3><p>Items Reported</p></div>
-      <div class="stat-card"><h3>860+</h3><p>Items Returned</p></div>
+      <div class="stat-card"><h3>1,240</h3><p>Items Reported</p></div>
+      <div class="stat-card"><h3>860</h3><p>Items Returned</p></div>
       <div class="stat-card"><h3>72%</h3><p>Successful Match Rate</p></div>
       <div class="stat-card"><h3>24/7</h3><p>Online Reporting</p></div>
     </div>
@@ -112,7 +116,7 @@
   </footer>
 
   <script>
-    // Check if user is logged in to change the navbar buttons
+    // 1. Check Auth to show Logout button
     const token = localStorage.getItem('token');
     if (token) {
       document.getElementById('navLoginBtn').style.display = 'none';
@@ -120,55 +124,46 @@
       document.getElementById('navLogoutBtn').style.display = 'inline-block';
     }
 
-    // Logout function
     document.getElementById('navLogoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
       localStorage.removeItem('token');
       localStorage.removeItem('studentId');
       window.location.reload();
     });
-  
-    // Show the latest real items (with photos) in the Recent Items box
-    function escHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text == null ? '' : String(text);
-      return div.innerHTML;
-    }
 
-    (async function loadRecentItems() {
+    // 2. Fetch Recent Items for the box on the right
+    async function loadRecentItems() {
       const box = document.getElementById('recentItems');
       try {
-        const res = await fetch('http://127.0.0.1:5000/api/items');
+        const res = await fetch('http://localhost:5000/api/items');
         if (!res.ok) throw new Error('Server error');
         const items = await res.json();
-        const latest = items.slice(0, 3);
+        const latest = items.slice(0, 3); // Get only top 3
 
         if (latest.length === 0) {
-          box.innerHTML = '<p class="match-meta">No items reported yet.</p>';
+          box.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">No items reported yet.</p>';
           return;
         }
 
         box.innerHTML = latest.map(item => `
-          <div class="match-card" style="display:flex; gap:12px; align-items:center;">
-            ${item.hasPhoto
-              ? `<img src="http://127.0.0.1:5000/api/items/${item._id}/photo" alt="Item photo"
-                   style="width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0;">`
-              : ''}
-            <div style="min-width:0;">
-              <div class="match-top">
-                <span class="match-title">${escHtml(item.title)}</span>
-                <span class="match-score" style="${item.type === 'lost' ? '' : 'background:#fee2e2; color:#991b1b;'}">${item.type === 'lost' ? 'Lost' : 'Found'}</span>
-              </div>
-              <div class="match-meta">
-                <span>📁 ${escHtml(item.category)}</span>
-                <span>📍 ${escHtml(item.location)}</span>
-              </div>
+          <div class="match-card">
+            <div class="match-top">
+              <span class="match-title">${item.title}</span>
+              <span class="match-score" style="${item.type === 'lost' ? '' : 'background:#fee2e2; color:#991b1b;'}">
+                ${item.type === 'lost' ? 'Lost' : 'Found'}
+              </span>
             </div>
-          </div>`).join('');
+            <div class="match-meta">
+              <span>📁 ${item.category}</span>
+              <span>📍 ${item.building}</span>
+            </div>
+          </div>
+        `).join('');
       } catch (err) {
-        box.innerHTML = '<p class="match-meta">Could not load items. Is the backend running?</p>';
+        box.innerHTML = '<p style="color:#dc2626; font-size:0.9rem;">Could not load items.</p>';
       }
-    })();
+    }
+    loadRecentItems();
   </script>
 </body>
 </html>
