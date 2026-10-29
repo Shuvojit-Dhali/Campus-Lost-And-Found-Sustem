@@ -65,7 +65,6 @@ app.post('/api/items', upload.single('photo'), async (req, res) => {
       itemData.photo = req.file.buffer;
       itemData.photoType = req.file.mimetype;
       itemData.hasPhoto = true;
-
       try {
         const aiResponse = await axios.post(
           "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base",
@@ -83,88 +82,126 @@ app.post('/api/items', upload.single('photo'), async (req, res) => {
 
     const oppositeType = newItem.type === 'lost' ? 'found' : 'lost';
     let matchQuery = { type: oppositeType, category: newItem.category, status: 'open' };
-    if (aiText) {
-      matchQuery.aiDescription = { $regex: new RegExp(aiText.split(' ').slice(0, 3).join('|'), 'i') };
-    }
+    if (aiText) matchQuery.aiDescription = { $regex: new RegExp(aiText.split(' ').slice(0, 3).join('|'), 'i') };
     const possibleMatches = await Item.find(matchQuery);
 
     res.status(201).json({ message: 'Item reported!', matchesFound: possibleMatches.length });
   } catch (err) { res.status(500).json({ message: 'Failed to report item', error: err.message }); }
 });
 
-// GET PUBLIC ITEMS (NO PHOTOS, NO DESCRIPTIONS, NO REPORTER ID)
 app.get('/api/items', async (req, res) => {
   try {
-    // We only select safe fields for the public
-    const items = await Item.find({ status: 'open' })
-      .select('title type category color building floor room date status')
-      .sort({ createdAt: -1 });
+    const items = await Item.find({ status: 'open' }).select('title type category color building floor room date status').sort({ createdAt: -1 });
     res.json(items);
   } catch (err) { res.status(500).json({ message: 'Failed to fetch items' }); }
 });
 
-// GET MY ITEMS & MATCHES
 app.get('/api/my-items', async (req, res) => {
   try {
     const { reportedBy } = req.query;
     if (!reportedBy) return res.status(400).json({ message: 'Missing student ID' });
     
-    // 1. Get items I reported
     const myItems = await Item.find({ reportedBy }).sort({ createdAt: -1 });
     
-    // 2. Get items I claimed
-    const claimedItems = await Item.find({ claimedBy: reportedBy });
+    // Items I am trying to claim (Waiting for approval)
+    const pendingClaims = await Item.find({ claimRequestedBy: reportedBy, status: 'pending' });
+    
+    // Items I successfully claimed
+    const claimedItems = await Item.find({ claimRequestedBy: reportedBy, status: 'claimed' });
 
-    // 3. Find potential matches for my open lost/found items
+    // AI Matches
     const myOpenItems = myItems.filter(i => i.status === 'open');
     let matches = [];
-
     for (let myItem of myOpenItems) {
       const oppositeType = myItem.type === 'lost' ? 'found' : 'lost';
       let matchQuery = { type: oppositeType, category: myItem.category, status: 'open', reportedBy: { $ne: reportedBy } };
-      
       if (myItem.aiDescription) {
          matchQuery.aiDescription = { $regex: new RegExp(myItem.aiDescription.split(' ').slice(0, 3).join('|'), 'i') };
       }
-      
       const foundMatches = await Item.find(matchQuery);
-      // Add a tag so the frontend knows this is a match
-      foundMatches.forEach(m => {
-        matches.push({ ...m._doc, isMatchFor: myItem.title });
-      });
+      foundMatches.forEach(m => matches.push({ ...m._doc, isMatchFor: myItem.title }));
     }
-
-    // Remove duplicates from matches
     const uniqueMatches = Array.from(new Set(matches.map(m => m._id.toString()))).map(id => matches.find(m => m._id.toString() === id));
 
-    res.json({ myItems, claimedItems, matches: uniqueMatches });
+    // Alerts (If someone requested to claim MY item)
+    const alerts = myItems.filter(item => item.status === 'pending');
+
+    res.json({ myItems, pendingClaims, claimedItems, matches: uniqueMatches, alerts });
   } catch (err) { res.status(500).json({ message: 'Failed to fetch dashboard data' }); }
 });
 
-// CLAIM AN ITEM
+// 1. REQUEST A CLAIM (Creates a pending request)
 app.post('/api/items/:id/claim', async (req, res) => {
   try {
     const { claimedBy } = req.body;
-    const item = await Item.findByIdAndUpdate(
-      req.params.id,
-      { status: 'claimed', claimedBy: claimedBy },
-      { new: true }
-    );
-    res.json({ message: 'Item claimed successfully! Please wait for admin verification.', item });
-  } catch (err) { res.status(500).json({ message: 'Failed to claim item' }); }
+    const item = await Item.findById(req.params.id);
+    
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (item.status !== 'open') return res.status(400).json({ message: 'Item is no longer available' });
+
+    item.status = 'pending';
+    item.claimRequestedBy = claimedBy;
+    await item.save();
+
+    res.json({ message: 'Claim request sent! Waiting for the reporter to approve.' });
+  } catch (err) { res.status(500).json({ message: 'Failed to process claim' }); }
 });
 
-// PRIVATE PHOTO ACCESS (Only for dashboard)
+// 2. APPROVE A CLAIM (Reporter accepts)
+app.post('/api/items/:id/approve', async (req, res) => {
+  try {
+    const { ownerId } = req.body;
+    const item = await Item.findById(req.params.id);
+    
+    if (!item || item.reportedBy !== ownerId) return res.status(403).json({ message: 'Unauthorized' });
+
+    item.status = 'claimed'; // Now it's officially claimed
+    await item.save();
+
+    res.json({ message: 'Claim approved successfully!' });
+  } catch (err) { res.status(500).json({ message: 'Failed to approve' }); }
+});
+
+// 3. REJECT A CLAIM (Reporter denies)
+app.post('/api/items/:id/reject', async (req, res) => {
+  try {
+    const { ownerId } = req.body;
+    const item = await Item.findById(req.params.id);
+    
+    if (!item || item.reportedBy !== ownerId) return res.status(403).json({ message: 'Unauthorized' });
+
+    item.status = 'open'; // Back to public
+    item.claimRequestedBy = null;
+    await item.save();
+
+    res.json({ message: 'Claim rejected.' });
+  } catch (err) { res.status(500).json({ message: 'Failed to reject' }); }
+});
+
+// 4. SECURE PHOTO ROUTE
 app.get('/api/items/:id/photo', async (req, res) => {
   try {
+    const requester = req.query.requester; // We pass the requester's ID from the frontend
     const item = await Item.findById(req.params.id).select('+photo +photoType');
+    
     if (!item || !item.photo) return res.status(404).json({ message: 'No photo' });
+
+    // SECURITY CHECK: You can only view the photo if:
+    // 1. You are the person who reported it
+    // 2. You are the person currently requesting to claim it
+    // 3. (Optional) You are an admin
+    const isOwner = item.reportedBy === requester;
+    const isClaimer = item.claimRequestedBy === requester;
+    
+    if (!isOwner && !isClaimer) {
+      return res.status(403).json({ message: 'Private: You do not have permission to view this photo.' });
+    }
+
     res.set('Content-Type', item.photoType);
     res.send(item.photo);
   } catch (err) { res.status(500).json({ message: 'Failed to load photo' }); }
 });
 
-// DELETE ITEM
 app.delete('/api/items/:id', async (req, res) => {
   try {
     const { reportedBy } = req.query;

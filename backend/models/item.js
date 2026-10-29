@@ -13,10 +13,12 @@ const ItemSchema = new mongoose.Schema({
   date: { type: Date, required: true },
   description: { type: String },
   reportedBy: { type: String, required: true }, 
-  status: { type: String, enum: ['open', 'claimed', 'resolved'], default: 'open' },
   
-  // NEW: Track who claimed it
-  claimedBy: { type: String, default: null },
+  // NEW STATUS: 'pending' is added for claims waiting for approval
+  status: { type: String, enum: ['open', 'pending', 'claimed', 'resolved'], default: 'open' },
+  
+  // NEW: Who is trying to claim this item?
+  claimRequestedBy: { type: String, default: null },
   
   hasPhoto: { type: Boolean, default: false },
   photo: { type: Buffer, select: false }, 

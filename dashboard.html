@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="css/style.css">
   <style>
     .dashboard-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+    
+    .alert-banner { background: #fee2e2; border: 1px solid #f87171; color: #991b1b; padding: 20px; border-radius: 12px; margin-bottom: 30px; display: none; animation: pulseAlert 2s infinite; }
+    @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
+    .alert-banner h3 { margin-bottom: 5px; font-size: 1.2rem; }
+
     .welcome-card { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 30px; border-radius: 14px; text-align: center; margin-bottom: 30px; }
     .section-title { font-size: 1.5rem; margin: 30px 0 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
     
@@ -17,14 +22,17 @@
     .badge-lost { background: #fee2e2; color: #dc2626; }
     .badge-found { background: #dcfce7; color: #16a34a; }
     .badge-match { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; }
+    .badge-pending { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
     
     .item-title { color: #0f172a; margin-bottom: 5px; font-size: 1.1rem; }
     .item-detail { color: #64748b; font-size: 0.85rem; margin-bottom: 5px; }
     
-    .actions { display: flex; gap: 10px; margin-top: 15px; }
-    .btn-view { flex: 1; background: #e0f2fe; color: #0369a1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-    .btn-delete { flex: 1; background: #fee2e2; color: #dc2626; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-    .btn-claim { flex: 1; background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+    .btn-view { flex: 1; background: #e0f2fe; color: #0369a1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;}
+    .btn-delete { flex: 1; background: #fee2e2; color: #dc2626; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;}
+    .btn-claim { flex: 1; background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;}
+    .btn-approve { flex: 1; background: #16a34a; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-reject { flex: 1; background: #dc2626; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
     
     .empty-msg { color: #64748b; font-style: italic; }
     
@@ -47,28 +55,28 @@
   </header>
 
   <div class="dashboard-container">
+    
+    <!-- ALERTS (FOR MY ITEMS) -->
+    <div class="alert-banner" id="alertBanner">
+      <h3>🔔 Action Needed!</h3>
+      <div id="alertContainer"></div>
+    </div>
+
     <div class="welcome-card">
       <h1>Welcome, <span id="display-id"></span>!</h1>
-      <p>Manage your reports and view your private matches below.</p>
     </div>
 
     <!-- MATCHES SECTION -->
     <h2 class="section-title" style="color: #d97706;">🔔 Potential AI Matches (Private)</h2>
-    <div class="grid" id="matchesContainer">
-      <p class="empty-msg">Loading matches...</p>
-    </div>
+    <div class="grid" id="matchesContainer"></div>
 
     <!-- MY POSTS SECTION -->
     <h2 class="section-title">My Reported Items</h2>
-    <div class="grid" id="myItemsContainer">
-      <p class="empty-msg">Loading reports...</p>
-    </div>
+    <div class="grid" id="myItemsContainer"></div>
 
-    <!-- CLAIMED ITEMS SECTION -->
-    <h2 class="section-title">Items I Claimed</h2>
-    <div class="grid" id="claimedContainer">
-      <p class="empty-msg">Loading claims...</p>
-    </div>
+    <!-- CLAIM STATUS SECTION -->
+    <h2 class="section-title">My Claims & Requests</h2>
+    <div class="grid" id="claimsContainer"></div>
   </div>
 
   <div class="modal" id="imageModal">
@@ -96,104 +104,136 @@
         const response = await fetch(`http://localhost:5000/api/my-items?reportedBy=${studentId}`);
         const data = await response.json();
 
-        renderMyItems(data.myItems);
-        renderMatches(data.matches);
-        renderClaimed(data.claimedItems);
+        // 1. Render Alerts (Pending approvals for MY items)
+        if (data.alerts && data.alerts.length > 0) {
+          const banner = document.getElementById('alertBanner');
+          banner.style.display = 'block';
+          
+          document.getElementById('alertContainer').innerHTML = data.alerts.map(item => `
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #fca5a5; padding-bottom: 10px;">
+              <p><strong>${item.claimRequestedBy}</strong> claims they own your reported item: <strong>"${item.title}"</strong>.</p>
+              <div class="actions" style="margin-top: 10px;">
+                <button class="btn-view" onclick="viewPhoto('${item._id}', '${item.reportedBy}')">View Their Claim Proof</button>
+                <button class="btn-approve" onclick="handleApproval('${item._id}', 'approve')">Approve Claim</button>
+                <button class="btn-reject" onclick="handleApproval('${item._id}', 'reject')">Reject Claim</button>
+              </div>
+            </div>
+          `).join('');
+        }
 
-      } catch (error) {
-        console.error(error);
-      }
+        // 2. Render My Items
+        const myContainer = document.getElementById('myItemsContainer');
+        if (data.myItems.length === 0) {
+          myContainer.innerHTML = '<p class="empty-msg">You have not posted any items yet.</p>';
+        } else {
+          myContainer.innerHTML = data.myItems.map(item => `
+            <div class="card">
+              <div>
+                <span class="badge ${item.type === 'lost' ? 'badge-lost' : 'badge-found'}">${item.type.toUpperCase()}</span>
+                <h3 class="item-title">${item.title}</h3>
+                <p class="item-detail">Status: <strong>${item.status.toUpperCase()}</strong></p>
+              </div>
+              <div class="actions">
+                ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}', '${studentId}')">View Photo</button>` : ''}
+                ${item.status === 'open' ? `<button class="btn-delete" onclick="deleteItem('${item._id}')">Delete</button>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // 3. Render Matches
+        const matchContainer = document.getElementById('matchesContainer');
+        if (data.matches.length === 0) {
+          matchContainer.innerHTML = '<p class="empty-msg">No matches found yet.</p>';
+        } else {
+          matchContainer.innerHTML = data.matches.map(item => `
+            <div class="card" style="border-color: #fcd34d; background: #fffbeb;">
+              <div>
+                <span class="badge badge-match">POSSIBLE MATCH</span>
+                <h3 class="item-title">${item.title}</h3>
+                <p class="item-detail">Matches your lost: <strong>${item.isMatchFor}</strong></p>
+              </div>
+              <div class="actions">
+                ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}', '${studentId}')">View Photo</button>` : ''}
+                <button class="btn-claim" onclick="requestClaim('${item._id}')">Claim Item</button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // 4. Render Claims & Pending
+        const claimsContainer = document.getElementById('claimsContainer');
+        const allMyClaims = [...data.pendingClaims, ...data.claimedItems];
+        if (allMyClaims.length === 0) {
+          claimsContainer.innerHTML = '<p class="empty-msg">You have not requested any items.</p>';
+        } else {
+          claimsContainer.innerHTML = allMyClaims.map(item => `
+            <div class="card">
+              <div>
+                <span class="badge badge-pending">${item.status.toUpperCase()}</span>
+                <h3 class="item-title">${item.title}</h3>
+                <p class="item-detail">Reporter: ${item.reportedBy}</p>
+              </div>
+              <div class="actions">
+                 ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}', '${studentId}')">View Photo</button>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+
+      } catch (error) { console.error(error); }
     }
 
-    function renderMyItems(items) {
-      const container = document.getElementById('myItemsContainer');
-      if (items.length === 0) return container.innerHTML = '<p class="empty-msg">You have not posted any items yet.</p>';
-      
-      container.innerHTML = items.map(item => `
-        <div class="card">
-          <div>
-            <span class="badge ${item.type === 'lost' ? 'badge-lost' : 'badge-found'}">${item.type.toUpperCase()}</span>
-            <h3 class="item-title">${item.title}</h3>
-            <p class="item-detail">Location: ${item.building}, Room ${item.room}</p>
-            <p class="item-detail">Status: <strong>${item.status.toUpperCase()}</strong></p>
-          </div>
-          <div class="actions">
-            ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}
-            ${item.status === 'open' ? `<button class="btn-delete" onclick="deleteItem('${item._id}')">Delete</button>` : ''}
-          </div>
-        </div>
-      `).join('');
+    // Request a claim
+    async function requestClaim(id) {
+      if (!confirm('Request this item? The finder will have to approve your request.')) return;
+      await fetch(`http://localhost:5000/api/items/${id}/claim`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claimedBy: studentId })
+      });
+      alert('Request sent! Waiting for reporter approval.');
+      loadDashboard();
     }
 
-    function renderMatches(matches) {
-      const container = document.getElementById('matchesContainer');
-      if (matches.length === 0) return container.innerHTML = '<p class="empty-msg">No matches found yet.</p>';
-      
-      container.innerHTML = matches.map(item => `
-        <div class="card" style="border-color: #fcd34d; background: #fffbeb;">
-          <div>
-            <span class="badge badge-match">POSSIBLE MATCH</span>
-            <h3 class="item-title">${item.title}</h3>
-            <p class="item-detail">Matches your lost: <strong>${item.isMatchFor}</strong></p>
-            <p class="item-detail">Location: ${item.building}, Room ${item.room}</p>
-          </div>
-          <div class="actions">
-            ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}
-            <button class="btn-claim" onclick="claimItem('${item._id}')">Claim</button>
-          </div>
-        </div>
-      `).join('');
+    // Approve or Reject
+    async function handleApproval(id, action) {
+      if (!confirm(`Are you sure you want to ${action} this claim?`)) return;
+      await fetch(`http://localhost:5000/api/items/${id}/${action}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ownerId: studentId })
+      });
+      alert(`Claim ${action}d!`);
+      loadDashboard();
     }
 
-    function renderClaimed(items) {
-      const container = document.getElementById('claimedContainer');
-      if (items.length === 0) return container.innerHTML = '<p class="empty-msg">You have not claimed any items.</p>';
-      
-      container.innerHTML = items.map(item => `
-        <div class="card">
-          <div>
-            <span class="badge badge-found">CLAIMED</span>
-            <h3 class="item-title">${item.title}</h3>
-            <p class="item-detail">Status: <strong>${item.status.toUpperCase()}</strong></p>
-          </div>
-          <div class="actions">
-             ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Actions
     async function deleteItem(id) {
       if (!confirm('Delete this report?')) return;
       await fetch(`http://localhost:5000/api/items/${id}?reportedBy=${studentId}`, { method: 'DELETE' });
       loadDashboard();
     }
 
-    async function claimItem(id) {
-      if (!confirm('Are you sure this is your item? The Admin will be notified.')) return;
-      await fetch(`http://localhost:5000/api/items/${id}/claim`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claimedBy: studentId })
-      });
-      alert('Item claimed!');
-      loadDashboard();
-    }
-
-    async function viewPhoto(id) {
+    // SECURE PHOTO VIEWER
+    async function viewPhoto(id, requesterId) {
       const modal = document.getElementById('imageModal');
       const img = document.getElementById('modalImage');
       img.src = ''; 
       modal.style.display = 'flex';
       
       try {
-        const response = await fetch(`http://localhost:5000/api/items/${id}/photo`);
+        // We pass the requesterId in the URL to prove who we are
+        const response = await fetch(`http://localhost:5000/api/items/${id}/photo?requester=${requesterId}`);
+        
         if (response.ok) {
           const blob = await response.blob();
           img.src = URL.createObjectURL(blob);
+        } else {
+          alert('Private: You do not have permission to view this photo.');
+          modal.style.display = 'none';
         }
-      } catch (error) { alert('Failed to load photo.'); }
+      } catch (error) { 
+        alert('Failed to load photo.'); 
+        modal.style.display = 'none';
+      }
     }
 
     loadDashboard();
