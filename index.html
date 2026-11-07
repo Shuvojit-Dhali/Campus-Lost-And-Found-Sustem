@@ -20,7 +20,6 @@
         <a href="index.html">Home</a>
         <a href="items.html">View Items</a>
         <a href="report.html">Report Item</a>
-        <!-- NEW DASHBOARD LINK (Hidden by default until logged in) -->
         <a href="dashboard.html" id="navDashBtn" style="display:none; font-weight: 700; color: var(--primary);">My Dashboard</a>
         <a href="#how-it-works">How It Works</a>
       </nav>
@@ -37,6 +36,11 @@
   <section class="hero">
     <div class="container hero-grid">
       <div>
+        <!-- WELCOME MESSAGE FOR LOGGED IN USERS -->
+        <div id="welcomeBanner" style="display:none; margin-bottom: 20px; padding: 15px; background: #dcfce7; border-radius: 8px; border: 1px solid #16a34a; color: #166534; font-weight: 600;">
+          Hello, <span id="userNameDisplay"></span>! Welcome back to CampusFind.
+        </div>
+
         <div class="badge">🎓 Campus-specific lost & found platform</div>
         <h1>Lost something on campus? <span>Find it faster.</span></h1>
         <p>
@@ -49,7 +53,6 @@
           <a href="report.html" class="btn btn-accent">Report Found Item</a>
         </div>
 
-        <!-- SEARCH FORM -->
         <form class="search-box" action="items.html" method="get" id="searchForm">
           <div class="search-grid">
             <select name="category" aria-label="Category">
@@ -117,32 +120,43 @@
   </footer>
 
   <script>
-    // 1. Check Auth to change Navbar buttons
+    // 1. Check Auth
     const token = localStorage.getItem('token');
+    const userName = localStorage.getItem('userName');
+    const studentId = localStorage.getItem('studentId');
+
     if (token) {
       document.getElementById('navLoginBtn').style.display = 'none';
       document.getElementById('navSignupBtn').style.display = 'none';
       document.getElementById('navLogoutBtn').style.display = 'inline-block';
-      // Show Dashboard link
       document.getElementById('navDashBtn').style.display = 'inline-block';
+      
+      // FIX: If name is missing (old account), show Student ID instead of "undefined"
+      if (userName && userName !== "undefined") {
+        document.getElementById('userNameDisplay').textContent = userName;
+      } else if (studentId) {
+        document.getElementById('userNameDisplay').textContent = "Student " + studentId;
+      }
+      
+      document.getElementById('welcomeBanner').style.display = 'block';
     }
 
-    // Logout function
     document.getElementById('navLogoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
       localStorage.removeItem('token');
       localStorage.removeItem('studentId');
+      localStorage.removeItem('userName'); 
       window.location.reload();
     });
 
-    // 2. Fetch Recent Items for the box on the right
+    // 2. Fetch Recent Items
     async function loadRecentItems() {
       const box = document.getElementById('recentItems');
       try {
         const res = await fetch('http://localhost:5000/api/items');
         if (!res.ok) throw new Error('Server error');
         const items = await res.json();
-        const latest = items.slice(0, 3); // Get only top 3
+        const latest = items.slice(0, 3);
 
         if (latest.length === 0) {
           box.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">No items reported yet.</p>';

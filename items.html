@@ -25,15 +25,13 @@
     .item-detail strong { color: #334155; }
     
     .action-btn { width: 100%; margin-top: 15px; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; text-align: center; text-decoration: none; display: block;}
-    
-    /* Different colors for different actions */
     .btn-claim { background: #2563eb; color: white; }
     .btn-claim:hover { background: #1d4ed8; }
     .btn-return { background: #16a34a; color: white; }
     .btn-return:hover { background: #15803d; }
+    .btn-disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
     
     .hidden-notice { font-size: 0.8rem; color: #94a3b8; font-style: italic; margin-top: 10px; text-align: center; padding-top: 10px; border-top: 1px dashed #e2e8f0;}
-    
     .filter-banner { background: #e0f2fe; color: #0369a1; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 600; display: none; }
   </style>
 </head>
@@ -66,13 +64,11 @@
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
 
-    // Get URL search parameters
     const urlParams = new URLSearchParams(window.location.search);
     const filterCategory = urlParams.get('category');
     const filterLocation = urlParams.get('location');
     const filterDate = urlParams.get('date');
 
-    // Show filter banner
     if (filterCategory || filterLocation || filterDate) {
       const banner = document.getElementById('filterBanner');
       banner.style.display = 'block';
@@ -90,12 +86,9 @@
         const response = await fetch('http://localhost:5000/api/items');
         let items = await response.json();
         
-        // Apply Filters
         if (filterCategory) items = items.filter(item => item.category.toLowerCase() === filterCategory.toLowerCase());
         if (filterLocation) items = items.filter(item => item.building.toLowerCase() === filterLocation.toLowerCase());
-        if (filterDate) {
-          items = items.filter(item => new Date(item.date).toISOString().split('T')[0] === filterDate);
-        }
+        if (filterDate) items = items.filter(item => new Date(item.date).toISOString().split('T')[0] === filterDate);
 
         if (items.length === 0) {
           grid.innerHTML = '<p style="text-align:center; width:100%; color:#64748b; font-size:1.1rem;">No items found matching your search.</p>';
@@ -111,19 +104,20 @@
           
           let actionButton = '';
 
-          // CHECK: Is this my own item?
           if (item.reportedBy === studentId) {
             actionButton = `<div style="text-align:center; color:#64748b; font-size:0.9rem; margin-top:15px; font-weight:600;">Your Own Report</div>`;
           } 
-          // IF NOT LOGGED IN
           else if (!token) {
              actionButton = `<a href="login.html" class="action-btn btn-claim">Login to Interact</a>`;
           } 
-          // IF IT'S A FOUND ITEM (The person looking might be the owner)
           else if (item.type === 'found') {
-            actionButton = `<button class="action-btn btn-claim" onclick="interactItem('${item._id}', 'claim')">This is Mine (Claim)</button>`;
+            // SECURITY: Hide the claim button if the finder hasn't confirmed the match
+            if (item.matchApproved) {
+              actionButton = `<button class="action-btn btn-claim" onclick="interactItem('${item._id}', 'claim')">This is Mine (Claim)</button>`;
+            } else {
+              actionButton = `<button class="action-btn btn-disabled" disabled>Finder must confirm match first</button>`;
+            }
           } 
-          // IF IT'S A LOST ITEM (The person looking might be the finder)
           else if (item.type === 'lost') {
             actionButton = `<button class="action-btn btn-return" onclick="interactItem('${item._id}', 'return')">I Found This (Return)</button>`;
           }
@@ -163,8 +157,6 @@
       if (!confirm(message)) return;
 
       try {
-        // For both claim and return, we update the status to 'claimed' 
-        // and set the claimedBy to the person interacting with it.
         const response = await fetch(`http://localhost:5000/api/items/${itemId}/claim`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -176,7 +168,7 @@
           alert('Action successful! Go to your dashboard to view the private photo and details.');
           window.location.href = 'dashboard.html';
         } else {
-          alert(data.message);
+          alert(data.message); // Shows "Finder has not confirmed" if they try to bypass
         }
       } catch (error) {
         alert('Failed to process request.');

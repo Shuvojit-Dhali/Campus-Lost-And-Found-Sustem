@@ -6,40 +6,53 @@
   <title>My Dashboard — CampusFind</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .dashboard-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+    .dashboard-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
+    
+    .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px; }
+    .stat-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 15px; text-align: left; }
+    .stat-box h2 { font-size: 1.8rem; color: #0f172a; margin: 0 0 5px 0; }
+    .stat-box p { color: #64748b; font-size: 0.9rem; margin: 0; }
+
+    .section-title { font-size: 1.4rem; color: #0f172a; margin: 40px 0 20px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+    .section-title.matches { color: #d97706; border-bottom-color: #fcd34d; }
+
+    .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+    .tab-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
     
     .alert-banner { background: #fee2e2; border: 1px solid #f87171; color: #991b1b; padding: 20px; border-radius: 12px; margin-bottom: 30px; display: none; animation: pulseAlert 2s infinite; }
     @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
-    .alert-banner h3 { margin-bottom: 5px; font-size: 1.2rem; }
 
-    .welcome-card { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 30px; border-radius: 14px; text-align: center; margin-bottom: 30px; }
-    .section-title { font-size: 1.5rem; margin: 30px 0 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .item-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+    .item-card.match-card { border-color: #fcd34d; background: #fffbeb; }
     
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-    .card { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; }
+    .item-image-placeholder { height: 160px; background: #f1f5f9; display: flex; justify-content: center; align-items: center; color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 10px;}
+    .item-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
     
     .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; }
     .badge-lost { background: #fee2e2; color: #dc2626; }
     .badge-found { background: #dcfce7; color: #16a34a; }
-    .badge-match { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; }
-    .badge-pending { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
-    
-    .item-title { color: #0f172a; margin-bottom: 5px; font-size: 1.1rem; }
-    .item-detail { color: #64748b; font-size: 0.85rem; margin-bottom: 5px; }
-    
+    .badge-pending { background: #e0f2fe; color: #0369a1; }
+    .badge-match { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;}
+
+    .item-title { font-size: 1.1rem; color: #0f172a; margin: 0 0 5px 0; }
+    .item-detail { font-size: 0.85rem; color: #64748b; margin: 0 0 5px 0; }
+
     .actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-    .btn-view { flex: 1; background: #e0f2fe; color: #0369a1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;}
-    .btn-delete { flex: 1; background: #fee2e2; color: #dc2626; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;}
-    .btn-claim { flex: 1; background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; min-width: 100px;}
-    .btn-approve { flex: 1; background: #16a34a; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-    .btn-reject { flex: 1; background: #dc2626; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-sm { flex: 1; padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; text-align: center; }
+    .btn-view { background: #e0f2fe; color: #0369a1; }
+    .btn-delete { background: #fee2e2; color: #dc2626; }
+    .btn-claim { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; }
+    .btn-match { background: #16a34a; color: white; }
+    .btn-approve { background: #16a34a; color: white; }
+    .btn-reject { background: #dc2626; color: white; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
+    .modal img { max-width: 95%; max-height: 90vh; border-radius: 10px; object-fit: contain; }
+    .close-modal { position: absolute; top: 20px; right: 30px; color: white; font-size: 50px; cursor: pointer; }
     
-    .empty-msg { color: #64748b; font-style: italic; }
-    
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
-    .modal img { max-width: 90%; max-height: 80%; border-radius: 10px; }
-    .modal p { color: white; margin-top: 15px; font-size: 1.2rem; }
-    .close-modal { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; }
+    .empty-text { color: #64748b; font-style: italic; margin-bottom: 20px;}
   </style>
 </head>
 <body style="background: #f8fafc;">
@@ -47,42 +60,59 @@
   <header>
     <div class="container navbar">
       <a href="index.html" class="logo"><span class="logo-icon">🔍</span> CampusFind</a>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="items.html">All Items</a>
+        <a href="report.html">Report Item</a>
+      </nav>
       <div class="nav-actions">
-        <a href="report.html" class="btn btn-primary">+ Report Item</a>
-        <a href="#" class="btn btn-outline" style="color:red;" id="logoutBtn">Logout</a>
+        <a href="#" class="btn btn-outline" style="color:#dc2626; border-color:#dc2626;" id="logoutBtn">Logout</a>
       </div>
     </div>
   </header>
 
   <div class="dashboard-container">
     
-    <!-- ALERTS (FOR MY ITEMS) -->
+    <div class="stats-row">
+      <div class="stat-box"><h2 id="statTotal">0</h2><p>My Posts</p></div>
+      <div class="stat-box"><h2 id="statLost">0</h2><p>Lost</p></div>
+      <div class="stat-box"><h2 id="statFound">0</h2><p>Found</p></div>
+      <div class="stat-box"><h2 id="statOpen">0</h2><p>Still open</p></div>
+      <div class="stat-box"><h2 id="statResolved">0</h2><p>Resolved</p></div>
+    </div>
+
     <div class="alert-banner" id="alertBanner">
       <h3>🔔 Action Needed!</h3>
       <div id="alertContainer"></div>
     </div>
 
-    <div class="welcome-card">
-      <h1>Welcome, <span id="display-id"></span>!</h1>
+    <h2 class="section-title matches">🔔 Potential AI Matches (Private)</h2>
+    <div class="items-grid" id="matchesGrid">
+      <p class="empty-text">Checking for matches...</p>
     </div>
 
-    <!-- MATCHES SECTION -->
-    <h2 class="section-title" style="color: #d97706;">🔔 Potential AI Matches (Private)</h2>
-    <div class="grid" id="matchesContainer"></div>
-
-    <!-- MY POSTS SECTION -->
     <h2 class="section-title">My Reported Items</h2>
-    <div class="grid" id="myItemsContainer"></div>
+    
+    <div class="filter-tabs">
+      <button class="tab-btn active" onclick="filterItems('all')">All</button>
+      <button class="tab-btn" onclick="filterItems('open')">Open</button>
+      <button class="tab-btn" onclick="filterItems('resolved')">Resolved</button>
+    </div>
 
-    <!-- CLAIM STATUS SECTION -->
-    <h2 class="section-title">My Claims & Requests</h2>
-    <div class="grid" id="claimsContainer"></div>
+    <div class="items-grid" id="myItemsGrid">
+      <p class="empty-text">Loading your items...</p>
+    </div>
+
+    <h2 class="section-title">Items I Requested / Claimed</h2>
+    <div class="items-grid" id="claimsGrid">
+      <p class="empty-text">Loading claims...</p>
+    </div>
+
   </div>
 
   <div class="modal" id="imageModal">
     <span class="close-modal" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
     <img id="modalImage" src="" alt="Item Photo">
-    <p>Private Verification Photo</p>
   </div>
 
   <script>
@@ -90,112 +120,194 @@
     const studentId = localStorage.getItem('studentId');
 
     if (!token || !studentId) window.location.href = 'login.html';
-    document.getElementById('display-id').textContent = studentId;
 
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
       localStorage.removeItem('token');
       localStorage.removeItem('studentId');
+      localStorage.removeItem('userName'); 
       window.location.href = 'login.html';
     });
+
+    let allMyItemsData = []; 
 
     async function loadDashboard() {
       try {
         const response = await fetch(`http://localhost:5000/api/my-items?reportedBy=${studentId}`);
         const data = await response.json();
 
-        // 1. Render Alerts (Pending approvals for MY items)
         if (data.alerts && data.alerts.length > 0) {
           const banner = document.getElementById('alertBanner');
           banner.style.display = 'block';
-          
           document.getElementById('alertContainer').innerHTML = data.alerts.map(item => `
             <div style="margin-bottom: 15px; border-bottom: 1px solid #fca5a5; padding-bottom: 10px;">
-              <p><strong>${item.claimRequestedBy}</strong> claims they own your reported item: <strong>"${item.title}"</strong>.</p>
+              <p><strong>${item.claimRequestedBy}</strong> claims they own your item: <strong>"${item.title}"</strong>.</p>
               <div class="actions" style="margin-top: 10px;">
-                <button class="btn-view" onclick="viewPhoto('${item._id}', '${item.reportedBy}')">View Their Claim Proof</button>
-                <button class="btn-approve" onclick="handleApproval('${item._id}', 'approve')">Approve Claim</button>
-                <button class="btn-reject" onclick="handleApproval('${item._id}', 'reject')">Reject Claim</button>
+                <button class="btn-sm btn-approve" onclick="handleApproval('${item._id}', 'approve')">Approve Claim</button>
+                <button class="btn-sm btn-reject" onclick="handleApproval('${item._id}', 'reject')">Reject Claim</button>
               </div>
             </div>
           `).join('');
-        }
-
-        // 2. Render My Items
-        const myContainer = document.getElementById('myItemsContainer');
-        if (data.myItems.length === 0) {
-          myContainer.innerHTML = '<p class="empty-msg">You have not posted any items yet.</p>';
         } else {
-          myContainer.innerHTML = data.myItems.map(item => `
-            <div class="card">
-              <div>
-                <span class="badge ${item.type === 'lost' ? 'badge-lost' : 'badge-found'}">${item.type.toUpperCase()}</span>
-                <h3 class="item-title">${item.title}</h3>
-                <p class="item-detail">Status: <strong>${item.status.toUpperCase()}</strong></p>
-              </div>
-              <div class="actions">
-                ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}', '${studentId}')">View Photo</button>` : ''}
-                ${item.status === 'open' ? `<button class="btn-delete" onclick="deleteItem('${item._id}')">Delete</button>` : ''}
-              </div>
-            </div>
-          `).join('');
+          document.getElementById('alertBanner').style.display = 'none';
         }
 
-        // 3. Render Matches
-        const matchContainer = document.getElementById('matchesContainer');
+        const total = data.myItems.length;
+        const lost = data.myItems.filter(i => i.type === 'lost').length;
+        const found = data.myItems.filter(i => i.type === 'found').length;
+        const open = data.myItems.filter(i => i.status === 'open').length;
+        const resolved = data.myItems.filter(i => i.status === 'resolved' || i.status === 'claimed').length;
+
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statLost').textContent = lost;
+        document.getElementById('statFound').textContent = found;
+        document.getElementById('statOpen').textContent = open;
+        document.getElementById('statResolved').textContent = resolved;
+
+        const matchesGrid = document.getElementById('matchesGrid');
         if (data.matches.length === 0) {
-          matchContainer.innerHTML = '<p class="empty-msg">No matches found yet.</p>';
+          matchesGrid.innerHTML = '<p class="empty-text">No AI matches found yet.</p>';
         } else {
-          matchContainer.innerHTML = data.matches.map(item => `
-            <div class="card" style="border-color: #fcd34d; background: #fffbeb;">
-              <div>
-                <span class="badge badge-match">POSSIBLE MATCH</span>
-                <h3 class="item-title">${item.title}</h3>
-                <p class="item-detail">Matches your lost: <strong>${item.isMatchFor}</strong></p>
+          matchesGrid.innerHTML = data.matches.map(item => {
+            
+            let matchButton = '';
+            
+            // If the item I am looking at is a "found" item, I am the FOUNDER looking at the LOST person's post
+            if (item.type === 'lost') {
+               matchButton = `<button class="btn-sm btn-match" onclick="confirmMatch('${item._id}')">Confirm Match</button>`;
+            } 
+            // If the item I am looking at is a "lost" item, I am the LOST person looking at the FOUNDER's post
+            else if (item.type === 'found') {
+               if (item.matchApproved) {
+                 // Founder already approved it, I can claim
+                 matchButton = `<button class="btn-sm btn-claim" onclick="requestClaim('${item._id}')">Claim Item</button>`;
+               } else {
+                 // Founder hasn't approved it, I cannot do anything
+                 matchButton = `<button class="btn-sm btn-disabled" style="background:#e2e8f0; color:#94a3b8; cursor:not-allowed;" disabled>Waiting for Finder</button>`;
+               }
+            }
+
+            return `
+            <div class="item-card match-card">
+              ${item.hasPhoto 
+                ? `<img src="http://localhost:5000/api/items/${item._id}/photo?requester=${studentId}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${item._id}')" onerror="this.style.display='none'">` 
+                : `<div class="item-image-placeholder" style="background:#fef3c7; color:#d97706;">Match Found (No Photo)</div>`
+              }
+              <div class="item-content">
+                <div>
+                  <span class="badge badge-match">POSSIBLE MATCH</span>
+                  <h3 class="item-title">${item.title}</h3>
+                  <p class="item-detail">Matches your: <strong>${item.isMatchFor}</strong></p>
+                  <p class="item-detail">📍 ${item.building}, Room ${item.room}</p>
+                </div>
+                <div class="actions">
+                  ${item.hasPhoto ? `<button class="btn-sm btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}
+                  ${matchButton}
+                </div>
               </div>
-              <div class="actions">
-                ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}', '${studentId}')">View Photo</button>` : ''}
-                <button class="btn-claim" onclick="requestClaim('${item._id}')">Claim Item</button>
+            </div>
+          `}).join('');
+        }
+
+        allMyItemsData = data.myItems;
+        renderMyGrid('all');
+
+        const claimsGrid = document.getElementById('claimsGrid');
+        const myClaims = [...data.pendingClaims, ...data.claimedItems];
+        if (myClaims.length === 0) {
+          claimsGrid.innerHTML = '<p class="empty-text">You have not requested any items.</p>';
+        } else {
+          claimsGrid.innerHTML = myClaims.map(item => `
+            <div class="item-card">
+              ${item.hasPhoto 
+                ? `<img src="http://localhost:5000/api/items/${item._id}/photo?requester=${studentId}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${item._id}')" onerror="this.style.display='none'">` 
+                : `<div class="item-image-placeholder">No Photo</div>`
+              }
+              <div class="item-content">
+                <div>
+                  <span class="badge badge-pending">${item.status.toUpperCase()}</span>
+                  <h3 class="item-title">${item.title}</h3>
+                  <p class="item-detail">Reporter: ${item.reportedBy}</p>
+                </div>
+                <div class="actions">
+                  ${item.hasPhoto ? `<button class="btn-sm btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}
+                </div>
               </div>
             </div>
           `).join('');
         }
 
-        // 4. Render Claims & Pending
-        const claimsContainer = document.getElementById('claimsContainer');
-        const allMyClaims = [...data.pendingClaims, ...data.claimedItems];
-        if (allMyClaims.length === 0) {
-          claimsContainer.innerHTML = '<p class="empty-msg">You have not requested any items.</p>';
-        } else {
-          claimsContainer.innerHTML = allMyClaims.map(item => `
-            <div class="card">
-              <div>
-                <span class="badge badge-pending">${item.status.toUpperCase()}</span>
-                <h3 class="item-title">${item.title}</h3>
-                <p class="item-detail">Reporter: ${item.reportedBy}</p>
-              </div>
-              <div class="actions">
-                 ${item.hasPhoto ? `<button class="btn-view" onclick="viewPhoto('${item._id}', '${studentId}')">View Photo</button>` : ''}
-              </div>
-            </div>
-          `).join('');
-        }
-
-      } catch (error) { console.error(error); }
+      } catch (error) {
+        console.error(error);
+      }
     }
 
-    // Request a claim
-    async function requestClaim(id) {
-      if (!confirm('Request this item? The finder will have to approve your request.')) return;
-      await fetch(`http://localhost:5000/api/items/${id}/claim`, {
+    function renderMyGrid(filter) {
+      const grid = document.getElementById('myItemsGrid');
+      let filtered = allMyItemsData;
+      if (filter === 'open') filtered = allMyItemsData.filter(i => i.status === 'open');
+      if (filter === 'resolved') filtered = allMyItemsData.filter(i => i.status === 'claimed' || i.status === 'resolved');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<p class="empty-text">No items found for this filter.</p>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => `
+        <div class="item-card">
+          ${item.hasPhoto 
+            ? `<img src="http://localhost:5000/api/items/${item._id}/photo?requester=${studentId}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${item._id}')" onerror="this.style.display='none'">` 
+            : `<div class="item-image-placeholder">No Photo</div>`
+          }
+          <div class="item-content">
+            <div>
+              <span class="badge ${item.type === 'lost' ? 'badge-lost' : 'badge-found'}">${item.type.toUpperCase()}</span>
+              <h3 class="item-title">${item.title}</h3>
+              <p class="item-detail">📍 ${item.building}, Room ${item.room}</p>
+              <p class="item-detail">Status: <strong>${item.status.toUpperCase()}</strong></p>
+            </div>
+            <div class="actions">
+              ${item.hasPhoto ? `<button class="btn-sm btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}
+              ${item.status === 'open' ? `<button class="btn-sm btn-delete" onclick="deleteItem('${item._id}')">Delete</button>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterItems(type) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderMyGrid(type);
+    }
+
+    // --- 100% SECURE MATCH & CLAIM LOGIC ---
+    
+    async function confirmMatch(id) {
+      if (!confirm('Are you sure this is the correct item? This will grant the lost person permission to view your photo and claim it.')) return;
+      await fetch(`http://localhost:5000/api/items/${id}/confirm-match`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claimedBy: studentId })
+        body: JSON.stringify({ ownerId: studentId })
       });
-      alert('Request sent! Waiting for reporter approval.');
+      alert('Match Confirmed! The Lost person can now see the photo and claim the item.');
       loadDashboard();
     }
 
-    // Approve or Reject
+    async function requestClaim(id) {
+      if (!confirm('Request this item? The reporter will have to approve your request.')) return;
+      const res = await fetch(`http://localhost:5000/api/items/${id}/claim`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claimedBy: studentId })
+      });
+      const data = await res.json();
+      if(res.ok) {
+        alert('Request sent! Waiting for reporter approval.');
+        loadDashboard();
+      } else {
+        alert(data.message); // Shows "Finder has not confirmed this match yet"
+      }
+    }
+
     async function handleApproval(id, action) {
       if (!confirm(`Are you sure you want to ${action} this claim?`)) return;
       await fetch(`http://localhost:5000/api/items/${id}/${action}`, {
@@ -212,28 +324,22 @@
       loadDashboard();
     }
 
-    // SECURE PHOTO VIEWER
-    async function viewPhoto(id, requesterId) {
+    async function viewPhoto(id) {
       const modal = document.getElementById('imageModal');
       const img = document.getElementById('modalImage');
       img.src = ''; 
       modal.style.display = 'flex';
-      
       try {
-        // We pass the requesterId in the URL to prove who we are
-        const response = await fetch(`http://localhost:5000/api/items/${id}/photo?requester=${requesterId}`);
-        
+        const response = await fetch(`http://localhost:5000/api/items/${id}/photo?requester=${studentId}`);
         if (response.ok) {
           const blob = await response.blob();
           img.src = URL.createObjectURL(blob);
         } else {
-          alert('Private: You do not have permission to view this photo.');
+          const err = await response.json();
+          alert(err.message || 'Private: The finder has not confirmed this match yet, or you lack permission.');
           modal.style.display = 'none';
         }
-      } catch (error) { 
-        alert('Failed to load photo.'); 
-        modal.style.display = 'none';
-      }
+      } catch (error) { alert('Failed to load photo.'); modal.style.display = 'none'; }
     }
 
     loadDashboard();

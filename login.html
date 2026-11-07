@@ -74,57 +74,57 @@
     </div>
   </div>
 
- <script>
-  function togglePassword(id, icon) {
-    const input = document.getElementById(id);
-    const slash = icon.querySelector('.eye-slash');
-    if (input.type === 'password') {
-      input.type = 'text';
-      slash.style.display = 'none';
-    } else {
-      input.type = 'password';
-      slash.style.display = 'block';
-    }
-  }
-
-  document.getElementById('loginForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const id = document.getElementById('login-id').value.trim();
-    const pass = document.getElementById('login-password').value.trim();
-    const err = document.getElementById('errorMsg');
-
-    if (!id || !pass) {
-      err.textContent = 'Please fill in both fields.';
-      err.style.display = 'block';
-      return;
-    }
-
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: id, password: pass })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('studentId', data.studentId);
-        
-        err.style.display = 'none';
-        alert('Login successful!');
-           window.location.href = 'index.html'; 
+  <script>
+    function togglePassword(id, icon) {
+      const input = document.getElementById(id);
+      const slash = icon.querySelector('.eye-slash');
+      if (input.type === 'password') {
+        input.type = 'text';
+        slash.style.display = 'none';
       } else {
-        err.textContent = data.message || 'Invalid Student ID or password.';
+        input.type = 'password';
+        slash.style.display = 'block';
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const id = document.getElementById('login-id').value.trim();
+      const pass = document.getElementById('login-password').value.trim();
+      const err = document.getElementById('errorMsg');
+
+      if (!id || !pass) {
+        err.textContent = 'Please fill in both fields.';
+        err.style.display = 'block';
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId: id, password: pass })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('studentId', data.studentId);
+          localStorage.setItem('userName', data.name); // Save the name!
+          
+          err.style.display = 'none';
+          alert('Login successful!');
+          window.location.href = 'index.html'; 
+        } else {
+          err.textContent = data.message || 'Invalid Student ID or password.';
+          err.style.display = 'block';
+        }
+      } catch (error) {
+        err.textContent = 'Cannot connect to server. Is the backend running?';
         err.style.display = 'block';
       }
-    } catch (error) {
-      err.textContent = 'Cannot connect to server. Is the backend running?';
-      err.style.display = 'block';
-      console.error(error);
-    }
-  });
-</script>
+    });
+  </script>
 </body>
 </html>

@@ -22,12 +22,23 @@
     <div class="signup-form-wrapper">
       <div class="form-card">
         <div class="form-title">Create Account</div>
-        <div class="form-subtitle">Register with your Student ID ✨</div>
+        <div class="form-subtitle">Register with your details ✨</div>
 
         <div class="error-msg" id="errorMsg"></div>
         <div class="success-msg" id="successMsg"></div>
 
         <form id="signupForm">
+          <!-- NEW NAME FIELD -->
+          <label class="form-label" for="signup-name">Full Name</label>
+          <input
+            class="form-input"
+            id="signup-name"
+            type="text"
+            placeholder="e.g. John Doe"
+            autocomplete="name"
+            required
+          />
+
           <label class="form-label" for="signup-id">Student ID</label>
           <input
             class="form-input"
@@ -109,6 +120,7 @@
   document.getElementById('signupForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
+    const name = document.getElementById('signup-name').value.trim();
     const id = document.getElementById('signup-id').value.trim();
     const pass = document.getElementById('signup-password').value;
     const confirm = document.getElementById('signup-confirm').value;
@@ -124,18 +136,18 @@
       err.style.display = 'block';
     }
 
+    if (!name) return showError('Full Name is required.');
     if (!id) return showError('Student ID is required.');
     if (id.length < 4) return showError('Student ID must be at least 4 characters.');
     if (pass.length < 6) return showError('Password must be at least 6 characters.');
     if (pass !== confirm) return showError('Passwords do not match.');
     if (!terms) return showError('Please accept the Terms of Service.');
 
-    // --- NEW CODE: Talk to the Backend! ---
     try {
       const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: id, password: pass })
+        body: JSON.stringify({ name: name, studentId: id, password: pass })
       });
 
       const data = await response.json();

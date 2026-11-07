@@ -14,10 +14,11 @@ const ItemSchema = new mongoose.Schema({
   description: { type: String },
   reportedBy: { type: String, required: true }, 
   
-  // NEW STATUS: 'pending' is added for claims waiting for approval
   status: { type: String, enum: ['open', 'pending', 'claimed', 'resolved'], default: 'open' },
   
-  // NEW: Who is trying to claim this item?
+  // NEW: Track if the finder has approved the AI match
+  matchApproved: { type: Boolean, default: false },
+  
   claimRequestedBy: { type: String, default: null },
   
   hasPhoto: { type: Boolean, default: false },
