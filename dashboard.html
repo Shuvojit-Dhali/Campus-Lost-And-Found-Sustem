@@ -47,6 +47,7 @@
     .btn-match { background: #16a34a; color: white; }
     .btn-approve { background: #16a34a; color: white; }
     .btn-reject { background: #dc2626; color: white; }
+    .btn-disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
 
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
     .modal img { max-width: 95%; max-height: 90vh; border-radius: 10px; object-fit: contain; }
@@ -73,6 +74,7 @@
 
   <div class="dashboard-container">
     
+    <!-- Stats -->
     <div class="stats-row">
       <div class="stat-box"><h2 id="statTotal">0</h2><p>My Posts</p></div>
       <div class="stat-box"><h2 id="statLost">0</h2><p>Lost</p></div>
@@ -81,28 +83,30 @@
       <div class="stat-box"><h2 id="statResolved">0</h2><p>Resolved</p></div>
     </div>
 
+    <!-- Alerts for Claims -->
     <div class="alert-banner" id="alertBanner">
       <h3>🔔 Action Needed!</h3>
       <div id="alertContainer"></div>
     </div>
 
+    <!-- Potential AI Matches -->
     <h2 class="section-title matches">🔔 Potential AI Matches (Private)</h2>
     <div class="items-grid" id="matchesGrid">
       <p class="empty-text">Checking for matches...</p>
     </div>
 
+    <!-- My Items -->
     <h2 class="section-title">My Reported Items</h2>
-    
     <div class="filter-tabs">
       <button class="tab-btn active" onclick="filterItems('all')">All</button>
       <button class="tab-btn" onclick="filterItems('open')">Open</button>
       <button class="tab-btn" onclick="filterItems('resolved')">Resolved</button>
     </div>
-
     <div class="items-grid" id="myItemsGrid">
       <p class="empty-text">Loading your items...</p>
     </div>
 
+    <!-- Claims Requested -->
     <h2 class="section-title">Items I Requested / Claimed</h2>
     <div class="items-grid" id="claimsGrid">
       <p class="empty-text">Loading claims...</p>
@@ -110,6 +114,7 @@
 
   </div>
 
+  <!-- Photo Modal -->
   <div class="modal" id="imageModal">
     <span class="close-modal" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
     <img id="modalImage" src="" alt="Item Photo">
@@ -123,9 +128,7 @@
 
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
-      localStorage.removeItem('token');
-      localStorage.removeItem('studentId');
-      localStorage.removeItem('userName'); 
+      localStorage.clear();
       window.location.href = 'login.html';
     });
 
@@ -133,13 +136,26 @@
 
     async function loadDashboard() {
       try {
-        const response = await fetch(`http://localhost:5000/api/my-items?reportedBy=${studentId}`);
-        const data = await response.json();
+        // 1. Fetch My Items
+        const itemsRes = await fetch(`http://localhost:5000/api/items/my-items/${studentId}`);
+        const myItems = await itemsRes.json();
 
-        if (data.alerts && data.alerts.length > 0) {
-          const banner = document.getElementById('alertBanner');
-          banner.style.display = 'block';
-          document.getElementById('alertContainer').innerHTML = data.alerts.map(item => `
+        // 2. Fetch All Open Items to find potential matches
+        const openRes = await fetch(`http://localhost:5000/api/items`);
+        const openItems = await openRes.json();
+
+        // 3. Calculate Stats
+        document.getElementById('statTotal').textContent = myItems.length;
+        document.getElementById('statLost').textContent = myItems.filter(i => i.type === 'lost').length;
+        document.getElementById('statFound').textContent = myItems.filter(i => i.type === 'found').length;
+        document.getElementById('statOpen').textContent = myItems.filter(i => i.status === 'open').length;
+        document.getElementById('statResolved').textContent = myItems.filter(i => i.status === 'claimed' || i.status === 'resolved').length;
+
+        // 4. Handle Alerts (Pending Claims on My Items)
+        const pendingClaims = myItems.filter(i => i.status === 'pending' && i.claimRequestedBy);
+        if (pendingClaims.length > 0) {
+          document.getElementById('alertBanner').style.display = 'block';
+          document.getElementById('alertContainer').innerHTML = pendingClaims.map(item => `
             <div style="margin-bottom: 15px; border-bottom: 1px solid #fca5a5; padding-bottom: 10px;">
               <p><strong>${item.claimRequestedBy}</strong> claims they own your item: <strong>"${item.title}"</strong>.</p>
               <div class="actions" style="margin-top: 10px;">
@@ -152,39 +168,45 @@
           document.getElementById('alertBanner').style.display = 'none';
         }
 
-        const total = data.myItems.length;
-        const lost = data.myItems.filter(i => i.type === 'lost').length;
-        const found = data.myItems.filter(i => i.type === 'found').length;
-        const open = data.myItems.filter(i => i.status === 'open').length;
-        const resolved = data.myItems.filter(i => i.status === 'resolved' || i.status === 'claimed').length;
-
-        document.getElementById('statTotal').textContent = total;
-        document.getElementById('statLost').textContent = lost;
-        document.getElementById('statFound').textContent = found;
-        document.getElementById('statOpen').textContent = open;
-        document.getElementById('statResolved').textContent = resolved;
-
+        // 5. Handle AI Matches
+        // A match is an item from another user, opposite type, same category, and still open
         const matchesGrid = document.getElementById('matchesGrid');
-        if (data.matches.length === 0) {
+        let matches = [];
+        
+        myItems.forEach(myItem => {
+          if (myItem.status !== 'open') return; // Only match open items
+          
+          openItems.forEach(otherItem => {
+            // Opposite type, same category, different user
+            if (myItem.type !== otherItem.type && 
+                myItem.category === otherItem.category && 
+                myItem.reportedBy !== otherItem.reportedBy) {
+              // Avoid duplicates
+              if (!matches.find(m => m._id === otherItem._id)) {
+                matches.push({ ...otherItem, isMatchFor: myItem.title, matchMyId: myItem._id });
+              }
+            }
+          });
+        });
+
+        if (matches.length === 0) {
           matchesGrid.innerHTML = '<p class="empty-text">No AI matches found yet.</p>';
         } else {
-          matchesGrid.innerHTML = data.matches.map(item => {
-            
+          matchesGrid.innerHTML = matches.map(item => {
             let matchButton = '';
             
-            // If the item I am looking at is a "found" item, I am the FOUNDER looking at the LOST person's post
-            if (item.type === 'lost') {
-               matchButton = `<button class="btn-sm btn-match" onclick="confirmMatch('${item._id}')">Confirm Match</button>`;
-            } 
-            // If the item I am looking at is a "lost" item, I am the LOST person looking at the FOUNDER's post
-            else if (item.type === 'found') {
-               if (item.matchApproved) {
-                 // Founder already approved it, I can claim
+            // Logic based on report: 
+            // If I am looking at a FOUND item, I am the owner of the LOST item. I can claim it IF the finder confirmed it.
+            if (item.type === 'found') {
+              if (item.matchApproved) {
                  matchButton = `<button class="btn-sm btn-claim" onclick="requestClaim('${item._id}')">Claim Item</button>`;
-               } else {
-                 // Founder hasn't approved it, I cannot do anything
-                 matchButton = `<button class="btn-sm btn-disabled" style="background:#e2e8f0; color:#94a3b8; cursor:not-allowed;" disabled>Waiting for Finder</button>`;
-               }
+              } else {
+                 matchButton = `<button class="btn-sm btn-disabled" disabled>Waiting for Finder</button>`;
+              }
+            } 
+            // If I am looking at a LOST item, I am the finder. I must confirm the match.
+            else if (item.type === 'lost') {
+               matchButton = `<button class="btn-sm btn-match" onclick="confirmMatch('${item._id}')">Confirm Match</button>`;
             }
 
             return `
@@ -209,11 +231,16 @@
           `}).join('');
         }
 
-        allMyItemsData = data.myItems;
+        // 6. Render My Items Grid
+        allMyItemsData = myItems;
         renderMyGrid('all');
 
+        // 7. Fetch Items I Requested / Claimed
+        // In a real scenario, the backend needs a specific endpoint for this, 
+        // but we can filter open items where claimRequestedBy == studentId
         const claimsGrid = document.getElementById('claimsGrid');
-        const myClaims = [...data.pendingClaims, ...data.claimedItems];
+        const myClaims = openItems.filter(i => i.claimRequestedBy === studentId || (i.status === 'claimed' && i.claimRequestedBy === studentId));
+        
         if (myClaims.length === 0) {
           claimsGrid.innerHTML = '<p class="empty-text">You have not requested any items.</p>';
         } else {
@@ -238,7 +265,9 @@
         }
 
       } catch (error) {
-        console.error(error);
+        console.error("Dashboard Load Error:", error);
+        document.getElementById('matchesGrid').innerHTML = '<p class="empty-text" style="color:red;">Failed to load data. Is server running?</p>';
+        document.getElementById('myItemsGrid').innerHTML = '<p class="empty-text" style="color:red;">Failed to load data.</p>';
       }
     }
 
@@ -281,38 +310,39 @@
       renderMyGrid(type);
     }
 
-    // --- 100% SECURE MATCH & CLAIM LOGIC ---
+    // --- API CALLS ---
     
     async function confirmMatch(id) {
-      if (!confirm('Are you sure this is the correct item? This will grant the lost person permission to view your photo and claim it.')) return;
+      if (!confirm('Are you sure this is the correct item? This will grant the lost person permission to claim it.')) return;
       await fetch(`http://localhost:5000/api/items/${id}/confirm-match`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ownerId: studentId })
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
       });
-      alert('Match Confirmed! The Lost person can now see the photo and claim the item.');
+      alert('Match Confirmed! The Lost person can now claim the item.');
       loadDashboard();
     }
 
     async function requestClaim(id) {
       if (!confirm('Request this item? The reporter will have to approve your request.')) return;
       const res = await fetch(`http://localhost:5000/api/items/${id}/claim`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claimedBy: studentId })
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requester: studentId })
       });
       const data = await res.json();
       if(res.ok) {
         alert('Request sent! Waiting for reporter approval.');
         loadDashboard();
       } else {
-        alert(data.message); // Shows "Finder has not confirmed this match yet"
+        alert(data.message); 
       }
     }
 
     async function handleApproval(id, action) {
       if (!confirm(`Are you sure you want to ${action} this claim?`)) return;
       await fetch(`http://localhost:5000/api/items/${id}/${action}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ownerId: studentId })
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' }
       });
       alert(`Claim ${action}d!`);
       loadDashboard();
@@ -320,7 +350,11 @@
 
     async function deleteItem(id) {
       if (!confirm('Delete this report?')) return;
-      await fetch(`http://localhost:5000/api/items/${id}?reportedBy=${studentId}`, { method: 'DELETE' });
+      await fetch(`http://localhost:5000/api/items/${id}`, { 
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: studentId })
+      });
       loadDashboard();
     }
 
@@ -342,6 +376,7 @@
       } catch (error) { alert('Failed to load photo.'); modal.style.display = 'none'; }
     }
 
+    // Load the dashboard when page opens
     loadDashboard();
   </script>
 </body>

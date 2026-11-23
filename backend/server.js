@@ -10,7 +10,7 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 
 // ==========================================
@@ -43,30 +43,27 @@ const upload = multer({
 });
 
 // ==========================================
-// AUTHENTICATION ROUTES (Part 1)
+// 1. AUTHENTICATION ROUTES
 // ==========================================
 
-// 1. Register User
+// Register User
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, studentId, password } = req.body;
 
-    // Check if user exists
     const existingUser = await User.findOne({ studentId });
     if (existingUser) {
       return res.status(400).json({ message: "Student ID already exists" });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
     const newUser = new User({
       name,
       studentId,
       password: hashedPassword,
-      role: 'student' // default role
+      role: 'student'
     });
 
     await newUser.save();
@@ -77,24 +74,21 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// 2. Login User
+// Login User
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { studentId, password } = req.body;
 
-    // Find user
     const user = await User.findOne({ studentId });
     if (!user) {
       return res.status(400).json({ message: "Invalid Student ID or password" });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid Student ID or password" });
     }
 
-    // Generate Token
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       JWT_SECRET,
@@ -105,7 +99,7 @@ app.post('/api/auth/login', async (req, res) => {
       token,
       studentId: user.studentId,
       name: user.name,
-      role: user.role // <--- THIS IS CRUCIAL FOR THE ADMIN BUTTON
+      role: user.role
     });
   } catch (err) {
     console.error(err);
@@ -114,10 +108,10 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ==========================================
-// ITEM ROUTES (Part 2 & 3)
+// 2. ITEM & DASHBOARD ROUTES
 // ==========================================
 
-// 3. Create Item (with AI Captioning)
+// Create Item
 app.post('/api/items', upload.single('photo'), async (req, res) => {
   try {
     const {
@@ -129,20 +123,19 @@ app.post('/api/items', upload.single('photo'), async (req, res) => {
     let photo = null;
     let photoType = null;
 
-    // If photo is uploaded, try to get AI caption
     if (req.file) {
       hasPhoto = true;
       photo = req.file.buffer;
       photoType = req.file.mimetype;
 
+      // AI Captioning (using Hugging Face)
       try {
-        // Send to Hugging Face API for BLIP captioning
         const hfResponse = await axios.post(
           'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base',
           req.file.buffer,
           {
             headers: {
-              'Authorization': 'Bearer YOUR_HF_API_TOKEN_HERE', // Replace if you have a token
+              'Authorization': 'Bearer YOUR_HF_API_TOKEN_HERE',
               'Content-Type': 'application/octet-stream'
             }
           }
@@ -162,7 +155,7 @@ app.post('/api/items', upload.single('photo'), async (req, res) => {
 
     await newItem.save();
 
-    // Count matches (Opposite type, same category)
+    // Count matches for response
     const matchCount = await Item.countDocuments({
       type: type === 'lost' ? 'found' : 'lost',
       category: category,
@@ -180,7 +173,7 @@ app.post('/api/items', upload.single('photo'), async (req, res) => {
   }
 });
 
-// 4. List Open Items
+// List Open Items (with filters)
 app.get('/api/items', async (req, res) => {
   try {
     const { category, location, date } = req.query;
@@ -190,7 +183,6 @@ app.get('/api/items', async (req, res) => {
     if (location) query.building = location;
     if (date) query.date = date;
 
-    // Select all except the heavy photo buffer
     const items = await Item.find(query).select('-photo');
     res.json(items);
   } catch (err) {
@@ -198,14 +190,131 @@ app.get('/api/items', async (req, res) => {
   }
 });
 
-// 5. Get Photo (with Permission Check)
-app.get('/api/items/:id/photo', async (req, res) => {
+// Get User's Own Items (My Items)
+app.get('/api/items/my-items/:studentId', async (req, res) => {
+  try {
+    const items = await Item.find({ reportedBy: req.params.studentId }).select('-photo').sort({ createdAt: -1 });
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch your items" });
+  }
+});
+
+// Delete Own Item
+app.delete('/api/items/:id', async (req, res) => {
+  try {
+    const { studentId } = req.body;
+    const item = await Item.findById(req.params.id);
+
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    if (item.reportedBy !== studentId) {
+      return res.status(403).json({ message: "You can only delete your own items" });
+    }
+
+    await Item.findByIdAndDelete(req.params.id);
+    res.json({ message: "Item deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete item" });
+  }
+});
+
+// ==========================================
+// 3. CLAIM WORKFLOW ROUTES
+// ==========================================
+
+// Confirm Match (Finder confirms match)
+app.put('/api/items/:id/confirm-match', async (req, res) => {
+  try {
+    const item = await Item.findByIdAndUpdate(
+      req.params.id,
+      { matchApproved: true },
+      { new: true }
+    );
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    res.json({ message: "Match confirmed", item });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to confirm match" });
+  }
+});
+
+// Claim Item (Requires matchApproved = true)
+app.put('/api/items/:id/claim', async (req, res) => {
+  try {
+    const { requester } = req.body;
+    const item = await Item.findById(req.params.id);
+
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    
+    if (item.type === 'found' && !item.matchApproved) {
+      return res.status(403).json({ message: "The finder has not confirmed this match yet. You cannot claim it." });
+    }
+
+    item.status = 'pending';
+    item.claimRequestedBy = requester;
+    await item.save();
+
+    res.json({ message: "Claim requested successfully", item });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to request claim" });
+  }
+});
+
+// Approve Claim (Reporter approves)
+app.put('/api/items/:id/approve', async (req, res) => {
   try {
     const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    item.status = 'claimed';
+    await item.save();
+
+    res.json({ message: "Claim approved", item });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to approve claim" });
+  }
+});
+
+// Reject Claim (Reporter rejects)
+app.put('/api/items/:id/reject', async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    item.status = 'open';
+    item.claimRequestedBy = null;
+    await item.save();
+
+    res.json({ message: "Claim rejected", item });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to reject claim" });
+  }
+});
+
+// ==========================================
+// 4. PHOTO PERMISSION ROUTE
+// ==========================================
+
+app.get('/api/items/:id/photo', async (req, res) => {
+  try {
+    // Frontend can pass ?requester=STUDENT_ID
+    const requester = req.query.requester; 
+    const item = await Item.findById(req.params.id);
+
     if (!item || !item.hasPhoto || !item.photo) {
       return res.status(404).json({ message: "Photo not found" });
     }
-    
+
+    // Permission Check: Reporter or Claimant can view. 
+    // (If no requester is passed, we allow it for backwards compatibility with your current frontend)
+    if (requester) {
+      const isReporter = item.reportedBy === requester;
+      const isClaimant = item.claimRequestedBy === requester;
+      
+      if (!isReporter && !isClaimant) {
+        return res.status(403).json({ message: "You do not have permission to view this photo." });
+      }
+    }
+
     res.set('Content-Type', item.photoType);
     res.send(item.photo);
   } catch (err) {
@@ -214,13 +323,11 @@ app.get('/api/items/:id/photo', async (req, res) => {
 });
 
 // ==========================================
-// ADMIN PANEL ROUTES (NEWLY ADDED)
+// 5. ADMIN PANEL ROUTES
 // ==========================================
 
-// 6. Get all users for Admin Panel
 app.get('/api/admin/users', async (req, res) => {
   try {
-    // We exclude the password field for security
     const users = await User.find().select('-password'); 
     res.json(users);
   } catch (err) {
@@ -228,10 +335,8 @@ app.get('/api/admin/users', async (req, res) => {
   }
 });
 
-// 7. Get ALL items for Admin Panel (not just open ones)
 app.get('/api/admin/items', async (req, res) => {
   try {
-    // Exclude photo buffer to keep the payload fast
     const items = await Item.find().select('-photo').sort({ createdAt: -1 });
     res.json(items);
   } catch (err) {
@@ -239,7 +344,6 @@ app.get('/api/admin/items', async (req, res) => {
   }
 });
 
-// 8. Delete an item from Admin Panel
 app.delete('/api/admin/items/:id', async (req, res) => {
   try {
     await Item.findByIdAndDelete(req.params.id);
