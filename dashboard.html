@@ -183,7 +183,7 @@
                 myItem.reportedBy !== otherItem.reportedBy) {
               // Avoid duplicates
               if (!matches.find(m => m._id === otherItem._id)) {
-                matches.push({ ...otherItem, isMatchFor: myItem.title, matchMyId: myItem._id });
+                matches.push({ ...otherItem, isMatchFor: myItem.title, matchMyId: myItem._id, photoItemId: myItem.type === 'found' ? myItem._id : otherItem._id, photoHasPhoto: myItem.type === 'found' ? myItem.hasPhoto : otherItem.hasPhoto, matchApproved: myItem.type === 'found' ? myItem.matchApproved : otherItem.matchApproved, iAmFoundReporter: myItem.type === 'found', foundItemId: myItem.type === 'found' ? myItem._id : otherItem._id });
               }
             }
           });
@@ -194,26 +194,22 @@
         } else {
           matchesGrid.innerHTML = matches.map(item => {
             let matchButton = '';
-            
-            // Logic based on report: 
-            // If I am looking at a FOUND item, I am the owner of the LOST item. I can claim it IF the finder confirmed it.
-            if (item.type === 'found') {
-              if (item.matchApproved) {
-                 matchButton = `<button class="btn-sm btn-claim" onclick="requestClaim('${item._id}')">Claim Item</button>`;
-              } else {
-                 matchButton = `<button class="btn-sm btn-disabled" disabled>Waiting for Finder</button>`;
-              }
-            } 
-            // If I am looking at a LOST item, I am the finder. I must confirm the match.
-            else if (item.type === 'lost') {
-               matchButton = `<button class="btn-sm btn-match" onclick="confirmMatch('${item._id}')">Confirm Match</button>`;
+            if (item.iAmFoundReporter) {
+              matchButton = item.matchApproved
+                ? `<button class="btn-sm btn-disabled" disabled>Match Confirmed</button>`
+                : `<button class="btn-sm btn-match" onclick="confirmMatch('${item.foundItemId}')">Confirm Match</button>`;
+            } else {
+              matchButton = item.matchApproved
+                ? `<button class="btn-sm btn-claim" onclick="requestClaim('${item.foundItemId}')">Claim Item</button>`
+                : `<button class="btn-sm btn-disabled" disabled>Waiting for Found Person</button>`;
             }
-
+            const photoAllowed = item.iAmFoundReporter || item.matchApproved;
+            const photoId = item.photoItemId;
             return `
             <div class="item-card match-card">
-              ${item.hasPhoto 
-                ? `<img src="http://localhost:5000/api/items/${item._id}/photo?requester=${studentId}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${item._id}')" onerror="this.style.display='none'">` 
-                : `<div class="item-image-placeholder" style="background:#fef3c7; color:#d97706;">Match Found (No Photo)</div>`
+              ${item.photoHasPhoto && photoAllowed
+                ? `<img src="http://localhost:5000/api/items/${photoId}/photo?requester=${encodeURIComponent(studentId)}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${photoId}')" onerror="this.style.display='none'">`
+                : `<div class="item-image-placeholder" style="background:#fef3c7; color:#d97706;">${item.photoHasPhoto ? 'Photo hidden until the found-item reporter confirms' : 'Match Found (No Photo)'}</div>`
               }
               <div class="item-content">
                 <div>
@@ -223,7 +219,7 @@
                   <p class="item-detail">📍 ${item.building}, Room ${item.room}</p>
                 </div>
                 <div class="actions">
-                  ${item.hasPhoto ? `<button class="btn-sm btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}
+                  ${item.photoHasPhoto && photoAllowed ? `<button class="btn-sm btn-view" onclick="viewPhoto('${photoId}')">View Photo</button>` : ''}
                   ${matchButton}
                 </div>
               </div>
@@ -314,11 +310,17 @@
     
     async function confirmMatch(id) {
       if (!confirm('Are you sure this is the correct item? This will grant the lost person permission to claim it.')) return;
-      await fetch(`http://localhost:5000/api/items/${id}/confirm-match`, {
+      const response = await fetch(`http://localhost:5000/api/items/${id}/confirm-match`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId })
       });
-      alert('Match Confirmed! The Lost person can now claim the item.');
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.message || 'Could not confirm this match.');
+        return;
+      }
+      alert('Match confirmed. The lost-item reporter can now view the photo and request the item.');
       loadDashboard();
     }
 

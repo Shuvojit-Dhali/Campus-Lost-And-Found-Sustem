@@ -222,18 +222,20 @@ app.delete('/api/items/:id', async (req, res) => {
 // 3. CLAIM WORKFLOW ROUTES
 // ==========================================
 
-// Confirm Match (Finder confirms match)
+// Confirm Match (only the person who reported the found item can confirm)
 app.put('/api/items/:id/confirm-match', async (req, res) => {
   try {
-    const item = await Item.findByIdAndUpdate(
-      req.params.id,
-      { matchApproved: true },
-      { new: true }
-    );
-    if (!item) return res.status(404).json({ message: "Item not found" });
-    res.json({ message: "Match confirmed", item });
+    const { studentId } = req.body;
+    const item = await Item.findById(req.params.id);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (item.type !== 'found' || item.reportedBy !== studentId) {
+      return res.status(403).json({ message: 'Only the person who reported this found item can confirm the match.' });
+    }
+    item.matchApproved = true;
+    await item.save();
+    res.json({ message: 'Match confirmed. The lost-item reporter can now view the photo and request the item.', item });
   } catch (err) {
-    res.status(500).json({ message: "Failed to confirm match" });
+    res.status(500).json({ message: 'Failed to confirm match' });
   }
 });
 
@@ -296,29 +298,35 @@ app.put('/api/items/:id/reject', async (req, res) => {
 
 app.get('/api/items/:id/photo', async (req, res) => {
   try {
-    // Frontend can pass ?requester=STUDENT_ID
-    const requester = req.query.requester; 
-    const item = await Item.findById(req.params.id);
+    const requester = req.query.requester;
+    if (!requester) return res.status(401).json({ message: 'Sign in to view this photo.' });
 
+    const item = await Item.findById(req.params.id).select('+photo +photoType');
     if (!item || !item.hasPhoto || !item.photo) {
-      return res.status(404).json({ message: "Photo not found" });
+      return res.status(404).json({ message: 'Photo not found' });
     }
 
-    // Permission Check: Reporter or Claimant can view. 
-    // (If no requester is passed, we allow it for backwards compatibility with your current frontend)
-    if (requester) {
-      const isReporter = item.reportedBy === requester;
-      const isClaimant = item.claimRequestedBy === requester;
-      
-      if (!isReporter && !isClaimant) {
-        return res.status(403).json({ message: "You do not have permission to view this photo." });
-      }
+    const isReporter = item.reportedBy === requester;
+    let isApprovedLostOwner = false;
+
+    if (item.type === 'found' && item.matchApproved) {
+      isApprovedLostOwner = !!(await Item.findOne({
+        type: 'lost',
+        reportedBy: requester,
+        category: item.category
+      }).select('_id'));
     }
 
-    res.set('Content-Type', item.photoType);
+    const isApprovedClaimant = item.matchApproved && item.claimRequestedBy === requester;
+    if (!isReporter && !isApprovedLostOwner && !isApprovedClaimant) {
+      return res.status(403).json({ message: 'The found-item reporter must confirm this match before you can view the photo.' });
+    }
+
+    res.set('Content-Type', item.photoType || 'application/octet-stream');
+    res.set('Cache-Control', 'no-store');
     res.send(item.photo);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching photo" });
+    res.status(500).json({ message: 'Error fetching photo' });
   }
 });
 
