@@ -3,13 +3,10 @@
 body {
   background: #1e1e2f;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   font-family: 'Inter', sans-serif;
 }
 
-.login-page {
+.signup-page {
   position: relative;
   width: 100vw;
   min-height: 100vh;
@@ -18,6 +15,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 60px 0;
 }
 
 .orb {
@@ -47,6 +45,13 @@ body {
   opacity: 0.35;
   animation-delay: -8s;
 }
+.orb-4 {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, #00d4ff 0%, transparent 70%);
+  bottom: 20%; left: 10%;
+  opacity: 0.28;
+  animation-delay: -6s;
+}
 
 @keyframes float {
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -67,7 +72,7 @@ body {
 }
 .home-link:hover { color: #b4a5ff; }
 
-.signup-btn {
+.login-btn {
   position: absolute;
   top: 35px;
   right: 40px;
@@ -83,9 +88,9 @@ body {
   z-index: 5;
   transition: transform 0.2s ease;
 }
-.signup-btn:hover { transform: translateY(-2px); }
+.login-btn:hover { transform: translateY(-2px); }
 
-.login-form-wrapper {
+.signup-form-wrapper {
   position: relative;
   width: 480px;
   z-index: 3;
@@ -99,7 +104,7 @@ body {
 
 .form-card {
   position: relative;
-  padding: 48px 40px 40px 40px;
+  padding: 44px 40px 36px 40px;
   background: rgba(30, 30, 50, 0.6);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -121,8 +126,8 @@ body {
 
 .form-title {
   font-weight: 800;
-  font-size: 36px;
-  line-height: 44px;
+  font-size: 34px;
+  line-height: 42px;
   letter-spacing: -0.8px;
   margin-bottom: 6px;
   background: linear-gradient(135deg, #ffffff 0%, #c8c8ff 100%);
@@ -133,9 +138,9 @@ body {
 
 .form-subtitle {
   font-weight: 400;
-  font-size: 16px;
+  font-size: 15px;
   color: #a9a9c4;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .form-label {
@@ -148,16 +153,16 @@ body {
 
 .form-input {
   width: 100%;
-  height: 56px;
+  height: 54px;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0 16px;
   font-family: 'Inter', sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   color: #ffffff;
   outline: none;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
@@ -175,7 +180,7 @@ body {
 .eye-icon {
   position: absolute;
   right: 16px;
-  top: 28px;
+  top: 15px;
   width: 24px;
   height: 24px;
   display: flex;
@@ -187,23 +192,31 @@ body {
 }
 .eye-icon:hover { color: #b4a5ff; }
 
-.form-options {
+/* 
+   Remember Me
+  */
+.login-options {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin: 24px 0 26px;
+  align-items: center;
+  margin-top: 24px;
+  margin-bottom: 24px;
 }
 
-.remember-wrapper {
+.remember-row {
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  user-select: none;
+  position: relative;
 }
 
-.remember-wrapper input { display: none; }
+/* Hide default checkbox */
+.remember-row input[type="checkbox"] { 
+  display: none; 
+}
 
+/* Custom Checkbox Box */
 .checkbox-square {
   width: 18px;
   height: 18px;
@@ -212,51 +225,65 @@ body {
   border: 1.5px solid #7b5cff;
   display: grid;
   place-items: center;
-  flex-shrink: 0;
   transition: background 0.2s ease;
+  flex-shrink: 0;
 }
 
-.remember-wrapper input:checked + .checkbox-square {
+/* Checked State */
+.remember-row input:checked + .checkbox-square {
   background: #7b5cff;
 }
 
-.remember-wrapper input:checked + .checkbox-square::after {
+.remember-row input:checked + .checkbox-square::after {
   content: "✓";
   font-size: 12px;
   color: white;
   font-weight: 700;
 }
 
-.remember-me {
-  font-size: 15px;
+.remember-text {
+  font-size: 14px;
   color: #c0c0d8;
 }
 
-.forgot-password {
-  font-weight: 600;
-  font-size: 15px;
+.forgot-link {
+  font-size: 14px;
   color: #a89bff;
+  font-weight: 600;
   text-decoration: none;
 }
 
-.login-btn {
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* =========================================
+   BUTTON 
+   ========================================= */
+.signup-submit {
   width: 100%;
   height: 58px;
   background: linear-gradient(135deg, #7b5cff 0%, #474BCA 100%);
   border-radius: 12px;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 17px;
   color: #FFFFFF;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   border: none;
   cursor: pointer;
   box-shadow: 0 0 30px rgba(123, 92, 255, 0.55);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.login-btn:hover {
+.signup-submit:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 45px rgba(123, 92, 255, 0.75);
+}
+
+.signup-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .error-msg {
@@ -271,14 +298,14 @@ body {
   text-align: center;
 }
 
-.signup-prompt {
+.login-prompt {
   text-align: center;
   font-size: 15px;
   color: #a0a0bc;
-  margin-top: 24px;
+  margin-top: 22px;
 }
 
-.signup-prompt a {
+.login-prompt a {
   color: #b4a5ff;
   font-weight: 700;
   text-decoration: none;
@@ -286,9 +313,9 @@ body {
 }
 
 @media (max-width: 560px) {
-  .login-form-wrapper { width: 92%; }
-  .form-card { padding: 36px 24px 30px 24px; }
-  .form-title { font-size: 28px; }
+  .signup-form-wrapper { width: 92%; }
+  .form-card { padding: 32px 24px 28px 24px; }
+  .form-title { font-size: 26px; }
   .home-link { top: 20px; left: 20px; font-size: 15px; }
-  .signup-btn { top: 16px; right: 20px; padding: 10px 20px; font-size: 14px; }
+  .login-btn { top: 16px; right: 20px; padding: 10px 20px; font-size: 14px; }
 }
