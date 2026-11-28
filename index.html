@@ -346,7 +346,7 @@
   async function loadRecentItems() {
       const box = document.getElementById('recentItems');
       try {
-          const res = await fetch('http://localhost:5000/api/items');
+          const res = await fetch('/api/items'); // <-- UPDATED
           if (!res.ok) throw new Error('Server error');
           const items = await res.json();
           const latest = items.slice(0, 3);

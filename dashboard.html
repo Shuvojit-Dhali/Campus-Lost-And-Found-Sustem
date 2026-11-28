@@ -7,38 +7,29 @@
   <link rel="stylesheet" href="css/style.css">
   <style>
     .dashboard-container { max-width: 1000px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; }
-    
     .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px; }
     .stat-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 15px; text-align: left; }
     .stat-box h2 { font-size: 1.8rem; color: #0f172a; margin: 0 0 5px 0; }
     .stat-box p { color: #64748b; font-size: 0.9rem; margin: 0; }
-
     .section-title { font-size: 1.4rem; color: #0f172a; margin: 40px 0 20px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
     .section-title.matches { color: #d97706; border-bottom-color: #fcd34d; }
-
     .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
     .tab-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
-    
     .alert-banner { background: #fee2e2; border: 1px solid #f87171; color: #991b1b; padding: 20px; border-radius: 12px; margin-bottom: 30px; display: none; animation: pulseAlert 2s infinite; }
     @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
-
     .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
     .item-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
     .item-card.match-card { border-color: #fcd34d; background: #fffbeb; }
-    
     .item-image-placeholder { height: 160px; background: #f1f5f9; display: flex; justify-content: center; align-items: center; color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 10px;}
     .item-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-    
     .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; }
     .badge-lost { background: #fee2e2; color: #dc2626; }
     .badge-found { background: #dcfce7; color: #16a34a; }
     .badge-pending { background: #e0f2fe; color: #0369a1; }
     .badge-match { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;}
-
     .item-title { font-size: 1.1rem; color: #0f172a; margin: 0 0 5px 0; }
     .item-detail { font-size: 0.85rem; color: #64748b; margin: 0 0 5px 0; }
-
     .actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
     .btn-sm { flex: 1; padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; text-align: center; }
     .btn-view { background: #e0f2fe; color: #0369a1; }
@@ -48,11 +39,9 @@
     .btn-approve { background: #16a34a; color: white; }
     .btn-reject { background: #dc2626; color: white; }
     .btn-disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
-
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
     .modal img { max-width: 95%; max-height: 90vh; border-radius: 10px; object-fit: contain; }
     .close-modal { position: absolute; top: 20px; right: 30px; color: white; font-size: 50px; cursor: pointer; }
-    
     .empty-text { color: #64748b; font-style: italic; margin-bottom: 20px;}
   </style>
 </head>
@@ -73,8 +62,6 @@
   </header>
 
   <div class="dashboard-container">
-    
-    <!-- Stats -->
     <div class="stats-row">
       <div class="stat-box"><h2 id="statTotal">0</h2><p>My Posts</p></div>
       <div class="stat-box"><h2 id="statLost">0</h2><p>Lost</p></div>
@@ -83,19 +70,16 @@
       <div class="stat-box"><h2 id="statResolved">0</h2><p>Resolved</p></div>
     </div>
 
-    <!-- Alerts for Claims -->
     <div class="alert-banner" id="alertBanner">
       <h3>🔔 Action Needed!</h3>
       <div id="alertContainer"></div>
     </div>
 
-    <!-- Potential AI Matches -->
     <h2 class="section-title matches">🔔 Potential AI Matches (Private)</h2>
     <div class="items-grid" id="matchesGrid">
       <p class="empty-text">Checking for matches...</p>
     </div>
 
-    <!-- My Items -->
     <h2 class="section-title">My Reported Items</h2>
     <div class="filter-tabs">
       <button class="tab-btn active" onclick="filterItems('all')">All</button>
@@ -106,15 +90,12 @@
       <p class="empty-text">Loading your items...</p>
     </div>
 
-    <!-- Claims Requested -->
     <h2 class="section-title">Items I Requested / Claimed</h2>
     <div class="items-grid" id="claimsGrid">
       <p class="empty-text">Loading claims...</p>
     </div>
-
   </div>
 
-  <!-- Photo Modal -->
   <div class="modal" id="imageModal">
     <span class="close-modal" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
     <img id="modalImage" src="" alt="Item Photo">
@@ -136,22 +117,18 @@
 
     async function loadDashboard() {
       try {
-        // 1. Fetch My Items
-        const itemsRes = await fetch(`http://localhost:5000/api/items/my-items/${studentId}`);
+        const itemsRes = await fetch(`/api/items/my-items/${studentId}`);
         const myItems = await itemsRes.json();
 
-        // 2. Fetch All Open Items to find potential matches
-        const openRes = await fetch(`http://localhost:5000/api/items`);
+        const openRes = await fetch(`/api/items`);
         const openItems = await openRes.json();
 
-        // 3. Calculate Stats
         document.getElementById('statTotal').textContent = myItems.length;
         document.getElementById('statLost').textContent = myItems.filter(i => i.type === 'lost').length;
         document.getElementById('statFound').textContent = myItems.filter(i => i.type === 'found').length;
         document.getElementById('statOpen').textContent = myItems.filter(i => i.status === 'open').length;
         document.getElementById('statResolved').textContent = myItems.filter(i => i.status === 'claimed' || i.status === 'resolved').length;
 
-        // 4. Handle Alerts (Pending Claims on My Items)
         const pendingClaims = myItems.filter(i => i.status === 'pending' && i.claimRequestedBy);
         if (pendingClaims.length > 0) {
           document.getElementById('alertBanner').style.display = 'block';
@@ -168,20 +145,16 @@
           document.getElementById('alertBanner').style.display = 'none';
         }
 
-        // 5. Handle AI Matches
-        // A match is an item from another user, opposite type, same category, and still open
         const matchesGrid = document.getElementById('matchesGrid');
         let matches = [];
         
         myItems.forEach(myItem => {
-          if (myItem.status !== 'open') return; // Only match open items
+          if (myItem.status !== 'open') return;
           
           openItems.forEach(otherItem => {
-            // Opposite type, same category, different user
             if (myItem.type !== otherItem.type && 
                 myItem.category === otherItem.category && 
                 myItem.reportedBy !== otherItem.reportedBy) {
-              // Avoid duplicates
               if (!matches.find(m => m._id === otherItem._id)) {
                 matches.push({ ...otherItem, isMatchFor: myItem.title, matchMyId: myItem._id, photoItemId: myItem.type === 'found' ? myItem._id : otherItem._id, photoHasPhoto: myItem.type === 'found' ? myItem.hasPhoto : otherItem.hasPhoto, matchApproved: myItem.type === 'found' ? myItem.matchApproved : otherItem.matchApproved, iAmFoundReporter: myItem.type === 'found', foundItemId: myItem.type === 'found' ? myItem._id : otherItem._id });
               }
@@ -208,7 +181,7 @@
             return `
             <div class="item-card match-card">
               ${item.photoHasPhoto && photoAllowed
-                ? `<img src="http://localhost:5000/api/items/${photoId}/photo?requester=${encodeURIComponent(studentId)}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${photoId}')" onerror="this.style.display='none'">`
+                ? `<img src="/api/items/${photoId}/photo?requester=${encodeURIComponent(studentId)}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${photoId}')" onerror="this.style.display='none'">`
                 : `<div class="item-image-placeholder" style="background:#fef3c7; color:#d97706;">${item.photoHasPhoto ? 'Photo hidden until the found-item reporter confirms' : 'Match Found (No Photo)'}</div>`
               }
               <div class="item-content">
@@ -227,13 +200,9 @@
           `}).join('');
         }
 
-        // 6. Render My Items Grid
         allMyItemsData = myItems;
         renderMyGrid('all');
 
-        // 7. Fetch Items I Requested / Claimed
-        // In a real scenario, the backend needs a specific endpoint for this, 
-        // but we can filter open items where claimRequestedBy == studentId
         const claimsGrid = document.getElementById('claimsGrid');
         const myClaims = openItems.filter(i => i.claimRequestedBy === studentId || (i.status === 'claimed' && i.claimRequestedBy === studentId));
         
@@ -243,7 +212,7 @@
           claimsGrid.innerHTML = myClaims.map(item => `
             <div class="item-card">
               ${item.hasPhoto 
-                ? `<img src="http://localhost:5000/api/items/${item._id}/photo?requester=${studentId}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${item._id}')" onerror="this.style.display='none'">` 
+                ? `<img src="/api/items/${item._id}/photo?requester=${studentId}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${item._id}')" onerror="this.style.display='none'">` 
                 : `<div class="item-image-placeholder">No Photo</div>`
               }
               <div class="item-content">
@@ -281,7 +250,7 @@
       grid.innerHTML = filtered.map(item => `
         <div class="item-card">
           ${item.hasPhoto 
-            ? `<img src="http://localhost:5000/api/items/${item._id}/photo?requester=${studentId}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${item._id}')" onerror="this.style.display='none'">` 
+            ? `<img src="/api/items/${item._id}/photo?requester=${studentId}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${item._id}')" onerror="this.style.display='none'">` 
             : `<div class="item-image-placeholder">No Photo</div>`
           }
           <div class="item-content">
@@ -306,11 +275,9 @@
       renderMyGrid(type);
     }
 
-    // --- API CALLS ---
-    
     async function confirmMatch(id) {
       if (!confirm('Are you sure this is the correct item? This will grant the lost person permission to claim it.')) return;
-      const response = await fetch(`http://localhost:5000/api/items/${id}/confirm-match`, {
+      const response = await fetch(`/api/items/${id}/confirm-match`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId })
@@ -326,7 +293,7 @@
 
     async function requestClaim(id) {
       if (!confirm('Request this item? The reporter will have to approve your request.')) return;
-      const res = await fetch(`http://localhost:5000/api/items/${id}/claim`, {
+      const res = await fetch(`/api/items/${id}/claim`, {
         method: 'PUT', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requester: studentId })
@@ -342,7 +309,7 @@
 
     async function handleApproval(id, action) {
       if (!confirm(`Are you sure you want to ${action} this claim?`)) return;
-      await fetch(`http://localhost:5000/api/items/${id}/${action}`, {
+      await fetch(`/api/items/${id}/${action}`, {
         method: 'PUT', 
         headers: { 'Content-Type': 'application/json' }
       });
@@ -352,7 +319,7 @@
 
     async function deleteItem(id) {
       if (!confirm('Delete this report?')) return;
-      await fetch(`http://localhost:5000/api/items/${id}`, { 
+      await fetch(`/api/items/${id}`, { 
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId: studentId })
@@ -366,7 +333,7 @@
       img.src = ''; 
       modal.style.display = 'flex';
       try {
-        const response = await fetch(`http://localhost:5000/api/items/${id}/photo?requester=${studentId}`);
+        const response = await fetch(`/api/items/${id}/photo?requester=${studentId}`);
         if (response.ok) {
           const blob = await response.blob();
           img.src = URL.createObjectURL(blob);
@@ -378,7 +345,6 @@
       } catch (error) { alert('Failed to load photo.'); modal.style.display = 'none'; }
     }
 
-    // Load the dashboard when page opens
     loadDashboard();
   </script>
 </body>

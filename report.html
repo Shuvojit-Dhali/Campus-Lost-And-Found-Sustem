@@ -186,7 +186,7 @@
         msgBox.style.color = '#0369a1';
         msgBox.style.display = 'block';
 
-        const response = await fetch('http://localhost:5000/api/items', {
+        const response = await fetch('/api/items', { // <-- UPDATED
           method: 'POST',
           body: formData
         });

@@ -273,11 +273,11 @@
   async function loadAdminData() {
     try {
       // Fetch Items
-      const itemsRes = await fetch('http://localhost:5000/api/admin/items');
+      const itemsRes = await fetch('/api/admin/items'); // <-- UPDATED
       const items = await itemsRes.json();
       
       // Fetch Users
-      const usersRes = await fetch('http://localhost:5000/api/admin/users');
+      const usersRes = await fetch('/api/admin/users'); // <-- UPDATED
       const users = await usersRes.json();
 
       // Update Stat Cards
@@ -334,7 +334,7 @@
     if (!confirm("Are you sure you want to permanently delete this item?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/items/${id}`, {
+      const res = await fetch(`/api/admin/items/${id}`, { // <-- UPDATED
         method: 'DELETE'
       });
       if (res.ok) {

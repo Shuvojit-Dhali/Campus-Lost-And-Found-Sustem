@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const multer = require('multer');
 const axios = require('axios');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -12,6 +13,11 @@ const app = express();
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(cors());
+
+// ==========================================
+// SERVE STATIC FILES (HTML, CSS, JS)
+// ==========================================
+app.use(express.static(__dirname));
 
 // ==========================================
 // DATABASE CONNECTION & ENVIRONMENT VARIABLES
@@ -365,6 +371,6 @@ app.delete('/api/admin/items/:id', async (req, res) => {
 // START SERVER
 // ==========================================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
