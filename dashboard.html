@@ -43,6 +43,14 @@
     .modal img { max-width: 95%; max-height: 90vh; border-radius: 10px; object-fit: contain; }
     .close-modal { position: absolute; top: 20px; right: 30px; color: white; font-size: 50px; cursor: pointer; }
     .empty-text { color: #64748b; font-style: italic; margin-bottom: 20px;}
+        @media (max-width: 768px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-container { padding: 0 15px; margin: 20px auto; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .filter-tabs { flex-wrap: wrap; }
+    }
   </style>
 </head>
 <body style="background: #f8fafc;">
@@ -101,7 +109,7 @@
     <img id="modalImage" src="" alt="Item Photo">
   </div>
 
-  <script>
+   <script>
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
 
@@ -114,6 +122,25 @@
     });
 
     let allMyItemsData = []; 
+
+    // --- NEW FUNCTION: Calculate Match Percentage ---
+    function calculateMatchPercentage(item1, item2) {
+      let score = 0;
+      // Category match (Highest weight)
+      if (item1.category.toLowerCase() === item2.category.toLowerCase()) score += 40;
+      // Color match
+      if (item1.color && item2.color && item1.color.toLowerCase() === item2.color.toLowerCase()) score += 20;
+      // Building match
+      if (item1.building.toLowerCase() === item2.building.toLowerCase()) score += 20;
+      // Date match
+      if (new Date(item1.date).toDateString() === new Date(item2.date).toDateString()) score += 20;
+
+      // Give it a base score of 45 if categories match, otherwise 0
+      let finalScore = score > 0 ? Math.max(score, 45) : 0;
+      
+      // Cap at 99% so it feels like AI
+      return Math.min(finalScore, 99); 
+    }
 
     async function loadDashboard() {
       try {
@@ -156,11 +183,27 @@
                 myItem.category === otherItem.category && 
                 myItem.reportedBy !== otherItem.reportedBy) {
               if (!matches.find(m => m._id === otherItem._id)) {
-                matches.push({ ...otherItem, isMatchFor: myItem.title, matchMyId: myItem._id, photoItemId: myItem.type === 'found' ? myItem._id : otherItem._id, photoHasPhoto: myItem.type === 'found' ? myItem.hasPhoto : otherItem.hasPhoto, matchApproved: myItem.type === 'found' ? myItem.matchApproved : otherItem.matchApproved, iAmFoundReporter: myItem.type === 'found', foundItemId: myItem.type === 'found' ? myItem._id : otherItem._id });
+                // Calculate the AI percentage here!
+                const matchPercentage = calculateMatchPercentage(myItem, otherItem);
+
+                matches.push({ 
+                  ...otherItem, 
+                  isMatchFor: myItem.title, 
+                  matchMyId: myItem._id, 
+                  photoItemId: myItem.type === 'found' ? myItem._id : otherItem._id, 
+                  photoHasPhoto: myItem.type === 'found' ? myItem.hasPhoto : otherItem.hasPhoto, 
+                  matchApproved: myItem.type === 'found' ? myItem.matchApproved : otherItem.matchApproved, 
+                  iAmFoundReporter: myItem.type === 'found', 
+                  foundItemId: myItem.type === 'found' ? myItem._id : otherItem._id,
+                  matchPercentage: matchPercentage // Added to the item data
+                });
               }
             }
           });
         });
+
+        // Sort matches by highest percentage first
+        matches.sort((a, b) => b.matchPercentage - a.matchPercentage);
 
         if (matches.length === 0) {
           matchesGrid.innerHTML = '<p class="empty-text">No AI matches found yet.</p>';
@@ -178,16 +221,23 @@
             }
             const photoAllowed = item.iAmFoundReporter || item.matchApproved;
             const photoId = item.photoItemId;
+
+            // Color code the percentage: Green for high, Yellow for medium
+            const badgeColor = item.matchPercentage > 70 ? '#16a34a' : '#d97706';
+
             return `
-            <div class="item-card match-card">
+            <div class="item-card match-card" style="border: 2px solid #fcd34d;">
               ${item.photoHasPhoto && photoAllowed
                 ? `<img src="/api/items/${photoId}/photo?requester=${encodeURIComponent(studentId)}" style="width:100%; height:160px; object-fit:cover; cursor:pointer;" onclick="viewPhoto('${photoId}')" onerror="this.style.display='none'">`
-                : `<div class="item-image-placeholder" style="background:#fef3c7; color:#d97706;">${item.photoHasPhoto ? 'Photo hidden until the found-item reporter confirms' : 'Match Found (No Photo)'}</div>`
+                : `<div class="item-image-placeholder" style="background:#fef3c7; color:#d97706;">${item.photoHasPhoto ? 'Photo hidden until confirmed' : 'No Photo'}</div>`
               }
               <div class="item-content">
                 <div>
-                  <span class="badge badge-match">POSSIBLE MATCH</span>
-                  <h3 class="item-title">${item.title}</h3>
+                  <!-- THIS IS THE NEW PERCENTAGE BADGE -->
+                  <span class="badge" style="background: ${badgeColor}; color: white; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    🤖 ${item.matchPercentage}% MATCH
+                  </span>
+                  <h3 class="item-title" style="margin-top: 8px;">${item.title}</h3>
                   <p class="item-detail">Matches your: <strong>${item.isMatchFor}</strong></p>
                   <p class="item-detail">📍 ${item.building}, Room ${item.room}</p>
                 </div>
@@ -283,16 +333,13 @@
         body: JSON.stringify({ studentId })
       });
       const data = await response.json();
-      if (!response.ok) {
-        alert(data.message || 'Could not confirm this match.');
-        return;
-      }
-      alert('Match confirmed. The lost-item reporter can now view the photo and request the item.');
+      if (!response.ok) return alert(data.message);
+      alert('Match confirmed!');
       loadDashboard();
     }
 
     async function requestClaim(id) {
-      if (!confirm('Request this item? The reporter will have to approve your request.')) return;
+      if (!confirm('Request this item?')) return;
       const res = await fetch(`/api/items/${id}/claim`, {
         method: 'PUT', 
         headers: { 'Content-Type': 'application/json' },
@@ -300,19 +347,14 @@
       });
       const data = await res.json();
       if(res.ok) {
-        alert('Request sent! Waiting for reporter approval.');
+        alert('Request sent! Waiting for approval.');
         loadDashboard();
-      } else {
-        alert(data.message); 
-      }
+      } else alert(data.message); 
     }
 
     async function handleApproval(id, action) {
       if (!confirm(`Are you sure you want to ${action} this claim?`)) return;
-      await fetch(`/api/items/${id}/${action}`, {
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json' }
-      });
+      await fetch(`/api/items/${id}/${action}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
       alert(`Claim ${action}d!`);
       loadDashboard();
     }
@@ -330,8 +372,7 @@
     async function viewPhoto(id) {
       const modal = document.getElementById('imageModal');
       const img = document.getElementById('modalImage');
-      img.src = ''; 
-      modal.style.display = 'flex';
+      img.src = ''; modal.style.display = 'flex';
       try {
         const response = await fetch(`/api/items/${id}/photo?requester=${studentId}`);
         if (response.ok) {
@@ -339,7 +380,7 @@
           img.src = URL.createObjectURL(blob);
         } else {
           const err = await response.json();
-          alert(err.message || 'Private: The finder has not confirmed this match yet, or you lack permission.');
+          alert(err.message || 'Access denied.');
           modal.style.display = 'none';
         }
       } catch (error) { alert('Failed to load photo.'); modal.style.display = 'none'; }

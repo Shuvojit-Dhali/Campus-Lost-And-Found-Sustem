@@ -141,6 +141,11 @@
       transition: 0.2s;
     }
     .btn-delete:hover { background: #fca5a5; }
+        @media (max-width: 768px) {
+      .admin-header { flex-direction: column; gap: 15px; text-align: center; }
+      .overview-grid { grid-template-columns: 1fr; }
+      .table-container { overflow-x: auto; } /* Allows scrolling tables sideways on phones */
+    }
   </style>
 </head>
 <body>
