@@ -17,7 +17,7 @@ app.use(cors());
 // ==========================================
 // SERVE STATIC FILES (HTML, CSS, JS)
 // ==========================================
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '../')));
 
 // ==========================================
 // DATABASE CONNECTION & ENVIRONMENT VARIABLES
