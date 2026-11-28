@@ -149,7 +149,7 @@
     </form>
   </div>
 
-  <script>
+    <script>
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
 
@@ -185,7 +185,7 @@
         msgBox.style.color = '#0369a1';
         msgBox.style.display = 'block';
 
-        const response = await fetch('/api/items', { // <-- UPDATED
+        const response = await fetch('/api/items', {
           method: 'POST',
           body: formData
         });
@@ -193,8 +193,9 @@
         const data = await response.json();
 
         if (response.ok) {
-          if (data.matchesFound > 0) {
-            alert(`Success! We also found ${data.matchesFound} potential match(es) using AI image recognition.`);
+          // FIX: Changed data.matchesFound to data.matchedFound
+          if (data.matchedFound > 0) {
+            alert(`Success! We also found ${data.matchedFound} potential match(es) using AI image recognition.`);
           }
           
           msgBox.style.background = '#dcfce7';

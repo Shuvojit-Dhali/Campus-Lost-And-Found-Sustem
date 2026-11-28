@@ -60,7 +60,7 @@
     </div>
   </div>
 
-  <script>
+    <script>
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
 
@@ -83,7 +83,7 @@
       const grid = document.getElementById('itemsGrid');
       
       try {
-        const response = await fetch('/api/items'); // <-- UPDATED
+        const response = await fetch('/api/items');
         let items = await response.json();
         
         if (filterCategory) items = items.filter(item => item.category.toLowerCase() === filterCategory.toLowerCase());
@@ -97,7 +97,7 @@
 
         grid.innerHTML = ''; 
 
- items.forEach(item => {
+        items.forEach(item => {
           const date = new Date(item.date).toLocaleDateString();
           const card = document.createElement('div');
           card.className = 'item-card';
@@ -111,7 +111,6 @@
              actionButton = `<a href="login.html" class="action-btn btn-claim">Login to Interact</a>`;
           } 
           else if (item.type === 'found') {
-            // SECURITY: Hide the claim button if the finder hasn't confirmed the match
             if (item.matchApproved) {
               actionButton = `<button class="action-btn btn-claim" onclick="interactItem('${item._id}', 'claim')">This is Mine (Claim)</button>`;
             } else {
@@ -151,16 +150,17 @@
       if (!token) return window.location.href = 'login.html';
       
       const message = actionType === 'claim' 
-        ? 'Are you sure this is your item? The Admin will be notified to verify your claim.' 
-        : 'Are you sure you found this item? The owner will be notified.';
+        ? 'Are you sure this is your item?' 
+        : 'Are you sure you found this item?';
 
       if (!confirm(message)) return;
 
       try {
-        const response = await fetch(`/api/items/${itemId}/claim`, { // <-- UPDATED
-          method: 'POST',
+        // FIX: Changed POST to PUT and claimedBy to requester
+        const response = await fetch(`/api/items/${itemId}/claim`, {
+          method: 'PUT', 
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ claimedBy: studentId })
+          body: JSON.stringify({ requester: studentId })
         });
         
         const data = await response.json();
@@ -168,7 +168,7 @@
           alert('Action successful! Go to your dashboard to view the private photo and details.');
           window.location.href = 'dashboard.html';
         } else {
-          alert(data.message); // Shows "Finder has not confirmed" if they try to bypass
+          alert(data.message);
         }
       } catch (error) {
         alert('Failed to process request.');

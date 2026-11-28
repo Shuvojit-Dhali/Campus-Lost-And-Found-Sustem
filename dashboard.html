@@ -109,7 +109,7 @@
     <img id="modalImage" src="" alt="Item Photo">
   </div>
 
-   <script>
+      <script>
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
 
@@ -123,23 +123,13 @@
 
     let allMyItemsData = []; 
 
-    // --- NEW FUNCTION: Calculate Match Percentage ---
     function calculateMatchPercentage(item1, item2) {
       let score = 0;
-      // Category match (Highest weight)
       if (item1.category.toLowerCase() === item2.category.toLowerCase()) score += 40;
-      // Color match
       if (item1.color && item2.color && item1.color.toLowerCase() === item2.color.toLowerCase()) score += 20;
-      // Building match
       if (item1.building.toLowerCase() === item2.building.toLowerCase()) score += 20;
-      // Date match
       if (new Date(item1.date).toDateString() === new Date(item2.date).toDateString()) score += 20;
-
-      // Give it a base score of 45 if categories match, otherwise 0
-      let finalScore = score > 0 ? Math.max(score, 45) : 0;
-      
-      // Cap at 99% so it feels like AI
-      return Math.min(finalScore, 99); 
+      return score > 0 ? Math.max(score, 45) : 0;
     }
 
     async function loadDashboard() {
@@ -149,6 +139,9 @@
 
         const openRes = await fetch(`/api/items`);
         const openItems = await openRes.json();
+
+        const claimsRes = await fetch(`/api/items/my-claims/${studentId}`);
+        const myClaims = await claimsRes.json();
 
         document.getElementById('statTotal').textContent = myItems.length;
         document.getElementById('statLost').textContent = myItems.filter(i => i.type === 'lost').length;
@@ -177,32 +170,24 @@
         
         myItems.forEach(myItem => {
           if (myItem.status !== 'open') return;
-          
           openItems.forEach(otherItem => {
-            if (myItem.type !== otherItem.type && 
-                myItem.category === otherItem.category && 
-                myItem.reportedBy !== otherItem.reportedBy) {
+            if (myItem.type !== otherItem.type && myItem.category === otherItem.category && myItem.reportedBy !== otherItem.reportedBy) {
               if (!matches.find(m => m._id === otherItem._id)) {
-                // Calculate the AI percentage here!
                 const matchPercentage = calculateMatchPercentage(myItem, otherItem);
-
                 matches.push({ 
-                  ...otherItem, 
-                  isMatchFor: myItem.title, 
-                  matchMyId: myItem._id, 
+                  ...otherItem, isMatchFor: myItem.title, matchMyId: myItem._id, 
                   photoItemId: myItem.type === 'found' ? myItem._id : otherItem._id, 
                   photoHasPhoto: myItem.type === 'found' ? myItem.hasPhoto : otherItem.hasPhoto, 
                   matchApproved: myItem.type === 'found' ? myItem.matchApproved : otherItem.matchApproved, 
                   iAmFoundReporter: myItem.type === 'found', 
                   foundItemId: myItem.type === 'found' ? myItem._id : otherItem._id,
-                  matchPercentage: matchPercentage // Added to the item data
+                  matchPercentage: matchPercentage
                 });
               }
             }
           });
         });
 
-        // Sort matches by highest percentage first
         matches.sort((a, b) => b.matchPercentage - a.matchPercentage);
 
         if (matches.length === 0) {
@@ -221,8 +206,6 @@
             }
             const photoAllowed = item.iAmFoundReporter || item.matchApproved;
             const photoId = item.photoItemId;
-
-            // Color code the percentage: Green for high, Yellow for medium
             const badgeColor = item.matchPercentage > 70 ? '#16a34a' : '#d97706';
 
             return `
@@ -233,10 +216,7 @@
               }
               <div class="item-content">
                 <div>
-                  <!-- THIS IS THE NEW PERCENTAGE BADGE -->
-                  <span class="badge" style="background: ${badgeColor}; color: white; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                    🤖 ${item.matchPercentage}% MATCH
-                  </span>
+                  <span class="badge" style="background: ${badgeColor}; color: white; border: none;">🤖 ${item.matchPercentage}% MATCH</span>
                   <h3 class="item-title" style="margin-top: 8px;">${item.title}</h3>
                   <p class="item-detail">Matches your: <strong>${item.isMatchFor}</strong></p>
                   <p class="item-detail">📍 ${item.building}, Room ${item.room}</p>
@@ -254,8 +234,6 @@
         renderMyGrid('all');
 
         const claimsGrid = document.getElementById('claimsGrid');
-        const myClaims = openItems.filter(i => i.claimRequestedBy === studentId || (i.status === 'claimed' && i.claimRequestedBy === studentId));
-        
         if (myClaims.length === 0) {
           claimsGrid.innerHTML = '<p class="empty-text">You have not requested any items.</p>';
         } else {
@@ -281,8 +259,6 @@
 
       } catch (error) {
         console.error("Dashboard Load Error:", error);
-        document.getElementById('matchesGrid').innerHTML = '<p class="empty-text" style="color:red;">Failed to load data. Is server running?</p>';
-        document.getElementById('myItemsGrid').innerHTML = '<p class="empty-text" style="color:red;">Failed to load data.</p>';
       }
     }
 
@@ -328,43 +304,42 @@
     async function confirmMatch(id) {
       if (!confirm('Are you sure this is the correct item? This will grant the lost person permission to claim it.')) return;
       const response = await fetch(`/api/items/${id}/confirm-match`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId })
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId })
       });
       const data = await response.json();
       if (!response.ok) return alert(data.message);
-      alert('Match confirmed!');
-      loadDashboard();
+      alert('Match confirmed!'); loadDashboard();
     }
 
     async function requestClaim(id) {
       if (!confirm('Request this item?')) return;
       const res = await fetch(`/api/items/${id}/claim`, {
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requester: studentId })
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requester: studentId })
       });
       const data = await res.json();
-      if(res.ok) {
-        alert('Request sent! Waiting for approval.');
-        loadDashboard();
-      } else alert(data.message); 
+      if(res.ok) { alert('Request sent! Waiting for approval.'); loadDashboard(); } 
+      else alert(data.message); 
     }
 
+    // FIX: Added studentId to the body to satisfy backend ownership check
     async function handleApproval(id, action) {
       if (!confirm(`Are you sure you want to ${action} this claim?`)) return;
-      await fetch(`/api/items/${id}/${action}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
-      alert(`Claim ${action}d!`);
+      const response = await fetch(`/api/items/${id}/${action}`, { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: studentId })
+      });
+      const data = await response.json();
+      if (!response.ok) return alert(data.message);
+      
+      alert(`Claim ${action}d!`); 
       loadDashboard();
     }
 
     async function deleteItem(id) {
       if (!confirm('Delete this report?')) return;
       await fetch(`/api/items/${id}`, { 
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: studentId })
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentId })
       });
       loadDashboard();
     }
