@@ -109,7 +109,7 @@
     <img id="modalImage" src="" alt="Item Photo">
   </div>
 
-      <script>
+          <script>
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
 
@@ -123,22 +123,10 @@
 
     let allMyItemsData = []; 
 
-    function calculateMatchPercentage(item1, item2) {
-      let score = 0;
-      if (item1.category.toLowerCase() === item2.category.toLowerCase()) score += 40;
-      if (item1.color && item2.color && item1.color.toLowerCase() === item2.color.toLowerCase()) score += 20;
-      if (item1.building.toLowerCase() === item2.building.toLowerCase()) score += 20;
-      if (new Date(item1.date).toDateString() === new Date(item2.date).toDateString()) score += 20;
-      return score > 0 ? Math.max(score, 45) : 0;
-    }
-
     async function loadDashboard() {
       try {
         const itemsRes = await fetch(`/api/items/my-items/${studentId}`);
         const myItems = await itemsRes.json();
-
-        const openRes = await fetch(`/api/items`);
-        const openItems = await openRes.json();
 
         const claimsRes = await fetch(`/api/items/my-claims/${studentId}`);
         const myClaims = await claimsRes.json();
@@ -166,29 +154,10 @@
         }
 
         const matchesGrid = document.getElementById('matchesGrid');
-        let matches = [];
+        matchesGrid.innerHTML = '<p class="empty-text">🤖 AI is analyzing descriptions for matches...</p>';
         
-        myItems.forEach(myItem => {
-          if (myItem.status !== 'open') return;
-          openItems.forEach(otherItem => {
-            if (myItem.type !== otherItem.type && myItem.category === otherItem.category && myItem.reportedBy !== otherItem.reportedBy) {
-              if (!matches.find(m => m._id === otherItem._id)) {
-                const matchPercentage = calculateMatchPercentage(myItem, otherItem);
-                matches.push({ 
-                  ...otherItem, isMatchFor: myItem.title, matchMyId: myItem._id, 
-                  photoItemId: myItem.type === 'found' ? myItem._id : otherItem._id, 
-                  photoHasPhoto: myItem.type === 'found' ? myItem.hasPhoto : otherItem.hasPhoto, 
-                  matchApproved: myItem.type === 'found' ? myItem.matchApproved : otherItem.matchApproved, 
-                  iAmFoundReporter: myItem.type === 'found', 
-                  foundItemId: myItem.type === 'found' ? myItem._id : otherItem._id,
-                  matchPercentage: matchPercentage
-                });
-              }
-            }
-          });
-        });
-
-        matches.sort((a, b) => b.matchPercentage - a.matchPercentage);
+        const matchesRes = await fetch(`/api/items/matches/${studentId}`);
+        const matches = await matchesRes.json();
 
         if (matches.length === 0) {
           matchesGrid.innerHTML = '<p class="empty-text">No AI matches found yet.</p>';
@@ -216,7 +185,7 @@
               }
               <div class="item-content">
                 <div>
-                  <span class="badge" style="background: ${badgeColor}; color: white; border: none;">🤖 ${item.matchPercentage}% MATCH</span>
+                  <span class="badge" style="background: ${badgeColor}; color: white; border: none; font-size: 0.9rem;">🤖 ${item.matchPercentage}% MATCH</span>
                   <h3 class="item-title" style="margin-top: 8px;">${item.title}</h3>
                   <p class="item-detail">Matches your: <strong>${item.isMatchFor}</strong></p>
                   <p class="item-detail">📍 ${item.building}, Room ${item.room}</p>
@@ -259,6 +228,8 @@
 
       } catch (error) {
         console.error("Dashboard Load Error:", error);
+        document.getElementById('matchesGrid').innerHTML = '<p class="empty-text" style="color:red;">Failed to load data.</p>';
+        document.getElementById('myItemsGrid').innerHTML = '<p class="empty-text" style="color:red;">Failed to load data.</p>';
       }
     }
 
@@ -302,7 +273,7 @@
     }
 
     async function confirmMatch(id) {
-      if (!confirm('Are you sure this is the correct item? This will grant the lost person permission to claim it.')) return;
+      if (!confirm('Are you sure this is the correct item?')) return;
       const response = await fetch(`/api/items/${id}/confirm-match`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId })
       });
@@ -317,23 +288,18 @@
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requester: studentId })
       });
       const data = await res.json();
-      if(res.ok) { alert('Request sent! Waiting for approval.'); loadDashboard(); } 
+      if(res.ok) { alert('Request sent!'); loadDashboard(); } 
       else alert(data.message); 
     }
 
-    // FIX: Added studentId to the body to satisfy backend ownership check
     async function handleApproval(id, action) {
       if (!confirm(`Are you sure you want to ${action} this claim?`)) return;
       const response = await fetch(`/api/items/${id}/${action}`, { 
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: studentId })
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentId })
       });
       const data = await response.json();
       if (!response.ok) return alert(data.message);
-      
-      alert(`Claim ${action}d!`); 
-      loadDashboard();
+      alert(`Claim ${action}d!`); loadDashboard();
     }
 
     async function deleteItem(id) {
