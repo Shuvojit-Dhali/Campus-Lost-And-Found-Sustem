@@ -243,22 +243,22 @@
 <!-- ===== HEADER ===== -->
 <header>
   <div class="container navbar">
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
       <span class="logo-icon">Q</span>
       CampusFind
     </a>
 
     <nav class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="items.html">View Items</a>
-      <a href="report.html">Report Item</a>
-      <a href="dashboard.html" id="navDashBtn" style="display:none; font-weight: 700; color: var(--primary);">My Dashboard</a>
-      <a href="how-it-works.html" class="active">How It Works</a>
+      <a href="/">Home</a>
+      <a href="/items">View Items</a>
+      <a href="/report">Report Item</a>
+      <a href="/dashboard" id="navDashBtn" style="display:none; font-weight: 700; color: var(--primary);">My Dashboard</a>
+      <a href="/how-it-works" class="active">How It Works</a>
     </nav>
 
     <div class="nav-actions">
-      <a href="login.html" class="btn btn-outline" id="navLoginBtn">Login</a>
-      <a href="signup.html" class="btn btn-primary" id="navSignupBtn">Sign Up</a>
+      <a href="/login" class="btn btn-outline" id="navLoginBtn">Login</a>
+      <a href="/signup" class="btn btn-primary" id="navSignupBtn">Sign Up</a>
       <a href="#" class="btn btn-danger" id="navLogoutBtn" style="display:none; background:#dc2626; color:white;">Logout</a>
     </div>
   </div>
@@ -456,8 +456,8 @@
       <h2>Ready to find what you lost?</h2>
       <p>Join CampusFind and get your item back — or help someone get theirs.</p>
       <div class="cta-buttons">
-        <a href="report.html" class="cta-btn white">Report an Item</a>
-        <a href="items.html" class="cta-btn outline">Browse Items</a>
+        <a href="/report" class="cta-btn white">Report an Item</a>
+        <a href="/items" class="cta-btn outline">Browse Items</a>
       </div>
     </div>
   </div>
@@ -490,7 +490,7 @@
     localStorage.removeItem('token');
     localStorage.removeItem('studentId');
     localStorage.removeItem('userName');
-    window.location.reload();
+    window.location.href = '/';
   });
 </script>
 

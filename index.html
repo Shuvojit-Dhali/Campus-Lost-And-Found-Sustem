@@ -7,285 +7,100 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    .hero {
-      padding: 40px 0;
-      background: #f8fafc;
-    }
-    .hero-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      align-items: center;
-    }
-    .badge {
-      display: inline-block;
-      background: #e0e7ff;
-      color: #3730a3;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 15px;
-    }
-    .hero h1 {
-      font-size: 3rem;
-      line-height: 1.1;
-      margin-bottom: 15px;
-      color: #0f172a;
-    }
-    .hero h1 span {
-      color: #2563eb;
-    }
-    .hero p {
-      color: #475569;
-      font-size: 1.05rem;
-      line-height: 1.6;
-      margin-bottom: 25px;
-    }
-    .hero-buttons {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 30px;
-    }
-    .btn {
-      padding: 12px 24px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      display: inline-block;
-      transition: 0.2s;
-    }
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-    }
+    .hero { padding: 40px 0; background: #f8fafc; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-bottom: 15px; }
+    .hero h1 { font-size: 3rem; line-height: 1.1; margin-bottom: 15px; color: #0f172a; }
+    .hero h1 span { color: #2563eb; }
+    .hero p { color: #475569; font-size: 1.05rem; line-height: 1.6; margin-bottom: 25px; }
+    .hero-buttons { display: flex; gap: 12px; margin-bottom: 30px; }
+    .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; transition: 0.2s; }
+    .btn-primary { background: #2563eb; color: white; }
     .btn-primary:hover { background: #1d4ed8; }
-    .btn-accent {
-      background: #f59e0b;
-      color: white;
-    }
+    .btn-accent { background: #f59e0b; color: white; }
     .btn-accent:hover { background: #d97706; }
-    .btn-danger {
-      background: #dc2626;
-      color: white;
-      padding: 8px 16px;
-    }
+    .btn-danger { background: #dc2626; color: white; padding: 8px 16px; }
     .btn-danger:hover { background: #b91c1c; }
-
-    .search-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      border: 1px solid #e2e8f0;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .search-box select, .search-box input {
-      flex: 1;
-      min-width: 120px;
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      outline: none;
-      color: #475569;
-    }
-    
-    .hero-visual {
-      background: white;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      border: 1px solid #e2e8f0;
-    }
-    .visual-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 15px;
-    }
-    .visual-header h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .live-dot {
-      width: 10px;
-      height: 10px;
-      background: #22c55e;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .visual-header a {
-      font-size: 0.85rem;
-      color: #2563eb;
-      font-weight: 600;
-      text-decoration: none;
-    }
-    
-    .match-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 15px;
-    }
-    .match-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
+    .search-box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; gap: 10px; flex-wrap: wrap; }
+    .search-box select, .search-box input { flex: 1; min-width: 120px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; color: #475569; }
+    .hero-visual { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    .visual-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
+    .visual-header h3 { margin: 0; font-size: 1.1rem; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+    .live-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; display: inline-block; }
+    .visual-header a { font-size: 0.85rem; color: #2563eb; font-weight: 600; text-decoration: none; }
+    .match-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+    .match-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .match-title { font-weight: 600; color: #0f172a; }
-    .match-score {
-      font-size: 0.75rem;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-    .match-meta {
-      display: flex;
-      gap: 15px;
-      font-size: 0.85rem;
-      color: #64748b;
-    }
-
+    .match-score { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+    .match-meta { display: flex; gap: 15px; font-size: 0.85rem; color: #64748b; }
     .stats { padding: 50px 0; background: white; }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      text-align: center;
-    }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center; }
     .stat-card h3 { font-size: 2rem; color: #0f172a; margin-bottom: 5px; }
     .stat-card p { color: #64748b; font-weight: 500; margin: 0; }
-
-    footer {
-      margin-top: 50px;
-      padding: 20px 0;
-      border-top: 1px solid #e2e8f0;
-      background: white;
-    }
-    .footer-bottom {
-      display: flex;
-      justify-content: center;
-      color: #64748b;
-      font-size: 0.9rem;
-    }
+    footer { margin-top: 50px; padding: 20px 0; border-top: 1px solid #e2e8f0; background: white; }
+    .footer-bottom { display: flex; justify-content: center; color: #64748b; font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
-<!-- Header -->
 <header style="background: white; border-bottom: 1px solid #e2e8f0; padding: 15px 0;">
   <div class="container navbar" style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-    <a href="index.html" class="logo" style="text-decoration: none; font-size: 1.4rem; font-weight: bold; color: #0f172a; display: flex; align-items: center;">
+    <a href="/" class="logo" style="text-decoration: none; font-size: 1.4rem; font-weight: bold; color: #0f172a; display: flex; align-items: center;">
       <span class="logo-icon" style="background: #2563eb; color: white; padding: 6px 12px; border-radius: 8px; font-weight: bold; margin-right: 8px;">Q</span>
       CampusFind
     </a>
 
     <nav class="nav-links" style="display: flex; gap: 20px;">
-      <a href="index.html" style="text-decoration: none; color: #2563eb; font-weight: 600;">Home</a>
-      <a href="items.html" style="text-decoration: none; color: #475569;">View Items</a>
-      <a href="report.html" style="text-decoration: none; color: #475569;">Report Item</a>
-      <a href="dashboard.html" id="navDashBtn" style="display:none; text-decoration: none; color: #475569;">My Dashboard</a>
-      <!-- Admin Dashboard Link -->
-      <a href="admin.html" id="navAdminBtn" style="display:none; text-decoration: none; color: #dc2626; font-weight: 600;">Admin Panel</a>
-      <a href="how-it-works.html" style="text-decoration: none; color: #475569;">How It Works</a>
+      <a href="/" style="text-decoration: none; color: #2563eb; font-weight: 600;">Home</a>
+      <a href="/items" style="text-decoration: none; color: #475569;">View Items</a>
+      <a href="/report" style="text-decoration: none; color: #475569;">Report Item</a>
+      <a href="/dashboard" id="navDashBtn" style="display:none; text-decoration: none; color: #475569;">My Dashboard</a>
+      <a href="/admin" id="navAdminBtn" style="display:none; text-decoration: none; color: #dc2626; font-weight: 600;">Admin Panel</a>
+      <a href="/how-it-works" style="text-decoration: none; color: #475569;">How It Works</a>
     </nav>
 
     <div class="nav-actions" style="display: flex; gap: 10px;">
-      <a href="login.html" class="btn btn-outline" id="navLoginBtn" style="background: white; border: 1px solid #cbd5e1; color: #0f172a;">Login</a>
-      <a href="signup.html" class="btn btn-primary" id="navSignupBtn">Sign Up</a>
+      <a href="/login" class="btn btn-outline" id="navLoginBtn" style="background: white; border: 1px solid #cbd5e1; color: #0f172a;">Login</a>
+      <a href="/signup" class="btn btn-primary" id="navSignupBtn">Sign Up</a>
       <a href="#" class="btn btn-danger" id="navLogoutBtn" style="display:none;">Logout</a>
     </div>
   </div>
 </header>
 
-<!-- Main Hero Section -->
 <section class="hero">
   <div class="container hero-grid" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-    
-    <!-- Left Side: Text & Search -->
     <div class="hero-content">
-      
-      <!-- Welcome Banner for Logged In Users -->
       <div id="welcomeBanner" style="display:none; margin-bottom: 20px; padding: 15px; background: #dcfce7; border-radius: 8px; border: 1px solid #16a34a; color: #166534; font-weight: 600;">
         Hello, <span id="userNameDisplay"></span>! Welcome back to CampusFind.
       </div>
-
-      <div class="badge">
-        <i class="fa-solid fa-location-dot"></i> Campus-specific lost & found platform
-      </div>
-      
-      <h1>
-        Lost something on campus? <span>Find it faster.</span>
-      </h1>
-      
-      <p>
-        Report lost and found items, get automatic smart matches based on category, color, location, and date, verify ownership, and track the full recovery process.
-      </p>
-
+      <div class="badge"><i class="fa-solid fa-location-dot"></i> Campus-specific lost & found platform</div>
+      <h1>Lost something on campus? <span>Find it faster.</span></h1>
+      <p>Report lost and found items, get automatic smart matches based on category, color, location, and date, verify ownership, and track the full recovery process.</p>
       <div class="hero-buttons">
-        <a href="report.html" class="btn btn-primary">Report Lost Item</a>
-        <a href="report.html" class="btn btn-accent">Report Found Item</a>
+        <a href="/report" class="btn btn-primary">Report Lost Item</a>
+        <a href="/report" class="btn btn-accent">Report Found Item</a>
       </div>
-
-      <!-- Search Box -->
-      <form class="search-box" action="items.html" method="get" id="searchForm">
+      <form class="search-box" action="/items" method="get" id="searchForm">
         <select name="category" aria-label="Category">
-          <option value="">Category</option>
-          <option>Wallet</option>
-          <option>ID Card</option>
-          <option>Phone</option>
-          <option>Laptop</option>
-          <option>Bag</option>
-          <option>Keys</option>
-          <option>Books</option>
-          <option>Clothing</option>
-          <option>Accessories</option>
-          <option>Other</option>
+          <option value="">Category</option><option>Wallet</option><option>ID Card</option><option>Phone</option><option>Laptop</option><option>Bag</option><option>Keys</option><option>Books</option><option>Clothing</option><option>Accessories</option><option>Other</option>
         </select>
-
         <select name="location" aria-label="Location">
-          <option value="">Campus Location</option>
-          <option>Academic Building 1</option>
-          <option>Academic Building 2</option>
-          <option>Canteen</option>
-          <option>Library</option>
-          <option>Reception</option>
-          <option>Office Room</option>
-          <option>Hostel</option>
+          <option value="">Campus Location</option><option>Academic Building 1</option><option>Academic Building 2</option><option>Canteen</option><option>Library</option><option>Reception</option><option>Office Room</option><option>Hostel</option>
         </select>
-
         <input type="date" name="date" aria-label="Date" />
-        
         <button type="submit" class="btn btn-primary">Search</button>
       </form>
     </div>
-
-    <!-- Right Side: Recent Items Visual -->
     <div class="hero-visual">
       <div class="visual-header">
         <h3><span class="live-dot"></span> Recent Items</h3>
-        <a href="items.html">View All</a>
+        <a href="/items">View All</a>
       </div>
-      
-      <div id="recentItems">
-        <p style="color: #64748b; font-size: 0.9rem;">Loading recent items...</p>
-      </div>
+      <div id="recentItems"><p style="color: #64748b; font-size: 0.9rem;">Loading recent items...</p></div>
     </div>
-
   </div>
 </section>
 
-<!-- Stats -->
 <section class="stats">
   <div class="container stats-grid" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
     <div class="stat-card"><h3>1,240</h3><p>Items Reported</p></div>
@@ -295,17 +110,13 @@
   </div>
 </section>
 
-<!-- Footer -->
 <footer>
   <div class="container">
-    <div class="footer-bottom">
-      <span>© 2026 CampusFind. All rights reserved.</span>
-    </div>
+    <div class="footer-bottom"><span>© 2026 CampusFind. All rights reserved.</span></div>
   </div>
 </footer>
 
 <script>
-  // 1. Check Auth & Role
   const token = localStorage.getItem('token');
   const userName = localStorage.getItem('userName');
   const studentId = localStorage.getItem('studentId');
@@ -316,54 +127,34 @@
     document.getElementById('navSignupBtn').style.display = 'none';
     document.getElementById('navLogoutBtn').style.display = 'inline-block';
     document.getElementById('navDashBtn').style.display = 'inline-block';
-
-    // If the user is an admin, show the Admin Panel link
-    if (userRole === 'admin') {
-      document.getElementById('navAdminBtn').style.display = 'inline-block';
-    }
-
-    // Show name or Student ID in the welcome banner
-    if (userName && userName !== "undefined") {
-      document.getElementById('userNameDisplay').textContent = userName;
-    } else if (studentId) {
-      document.getElementById('userNameDisplay').textContent = "Student " + studentId;
-    }
-
+    if (userRole === 'admin') document.getElementById('navAdminBtn').style.display = 'inline-block';
+    if (userName && userName !== "undefined") document.getElementById('userNameDisplay').textContent = userName;
+    else if (studentId) document.getElementById('userNameDisplay').textContent = "Student " + studentId;
     document.getElementById('welcomeBanner').style.display = 'block';
   }
 
-  // 2. Logout Logic
   document.getElementById('navLogoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
-      localStorage.removeItem('token');
-      localStorage.removeItem('studentId');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userRole');
+      localStorage.clear();
       window.location.reload();
   });
 
-  // 3. Fetch Recent Items
   async function loadRecentItems() {
       const box = document.getElementById('recentItems');
       try {
-          const res = await fetch('/api/items'); // <-- UPDATED
+          const res = await fetch('/api/items');
           if (!res.ok) throw new Error('Server error');
           const items = await res.json();
           const latest = items.slice(0, 3);
-
           if (latest.length === 0) {
               box.innerHTML = '<p style="color:#64748b; font-size:0.9rem;">No items reported yet.</p>';
               return;
           }
-
-          // THIS IS THE FIXED JAVASCRIPT PART
           box.innerHTML = latest.map(item => `
               <div class="match-card">
                   <div class="match-top">
                       <span class="match-title">${item.title}</span>
-                      <span class="match-score" style="${item.type === 'lost' ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;'}">
-                          ${item.type === 'lost' ? 'Lost' : 'Found'}
-                      </span>
+                      <span class="match-score" style="${item.type === 'lost' ? 'background:#fee2e2; color:#991b1b;' : 'background:#dcfce7; color:#166534;'}">${item.type === 'lost' ? 'Lost' : 'Found'}</span>
                   </div>
                   <div class="match-meta">
                       <span><i class="fa-solid fa-tag"></i> ${item.category}</span>
@@ -372,12 +163,10 @@
               </div>
           `).join('');
       } catch (err) {
-          box.innerHTML = '<p style="color:#dc2626; font-size:0.9rem;">Could not load items. Make sure backend is running.</p>';
+          box.innerHTML = '<p style="color:#dc2626; font-size:0.9rem;">Could not load items.</p>';
       }
   }
-
   loadRecentItems();
 </script>
-
 </body>
 </html>

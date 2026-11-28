@@ -15,155 +15,62 @@
     .submit-btn { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1.1rem; transition: 0.2s; margin-top: 10px; }
     .submit-btn:hover { background: #1d4ed8; }
     .message { display: none; padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center; font-weight: 600; }
-    
-    /* Grid for Location inputs */
     .location-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
     @media (max-width: 500px) { .location-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body style="background: #f8fafc;">
-
   <header>
     <div class="container navbar">
-      <a href="index.html" class="logo"><span class="logo-icon">🔍</span> CampusFind</a>
-      <a href="dashboard.html" class="btn btn-outline">← Dashboard</a>
+      <a href="/" class="logo"><span class="logo-icon">🔍</span> CampusFind</a>
+      <a href="/dashboard" class="btn btn-outline">← Dashboard</a>
     </div>
   </header>
-
   <div class="form-container">
     <h2 style="margin-bottom: 5px; color: #0f172a;">Report an Item</h2>
     <p style="color: #64748b; margin-bottom: 25px; font-size: 0.95rem;">Fill out the details below. Photos are kept private and only used for verification.</p>
-    
     <div id="message" class="message"></div>
-
     <form id="reportForm">
-      
       <div class="form-group radio-group">
         <label><input type="radio" name="type" value="lost" required checked> I Lost an Item</label>
         <label><input type="radio" name="type" value="found" required> I Found an Item</label>
       </div>
-
-      <div class="form-group">
-        <label>Item Title</label>
-        <input type="text" id="title" placeholder="e.g., Black Leather Wallet" required>
-      </div>
-
-      <!-- UPDATED CATEGORIES HERE -->
+      <div class="form-group"><label>Item Title</label><input type="text" id="title" placeholder="e.g., Black Leather Wallet" required></div>
       <div class="form-group">
         <label>Category</label>
         <select id="category" required>
-          <option value="">Select Category</option>
-          <option>Wallet</option>
-          <option>ID Card</option>
-          <option>Phone</option>
-          <option>Laptop</option>
-          <option>Bag</option>
-          <option>Keys</option>
-          <option>Books</option>
-          <option>Clothing</option>
-          <option>Accessories</option>
-          <option>Other</option>
+          <option value="">Select Category</option><option>Wallet</option><option>ID Card</option><option>Phone</option><option>Laptop</option><option>Bag</option><option>Keys</option><option>Books</option><option>Clothing</option><option>Accessories</option><option>Other</option>
         </select>
       </div>
-
-      <div class="form-group">
-        <label>Color</label>
-        <input type="text" id="color" placeholder="e.g., Black, Blue, Red" required>
-      </div>
-
-      <!-- UPDATED LOCATION SYSTEM HERE -->
+      <div class="form-group"><label>Color</label><input type="text" id="color" placeholder="e.g., Black, Blue, Red" required></div>
       <div class="form-group">
         <label>Campus Location</label>
         <div class="location-grid">
-          
           <select id="building" required>
-            <option value="">Building / Place</option>
-            <option>Academic Building 1</option>
-            <option>Academic Building 2</option>
-            <option>Canteen</option>
-            <option>Library</option>
-            <option>Reception</option>
-            <option>Office Room</option>
-            <option>Hostel</option>
+            <option value="">Building / Place</option><option>Academic Building 1</option><option>Academic Building 2</option><option>Canteen</option><option>Library</option><option>Reception</option><option>Office Room</option><option>Hostel</option>
           </select>
-
           <select id="floor" required>
-            <option value="">Floor / Area</option>
-            <option>Ground Floor</option>
-            <option>1st Floor</option>
-            <option>2nd Floor</option>
-            <option>3rd Floor</option>
-            <option>4th Floor</option>
-            <option>5th Floor</option>
-            <option>6th Floor</option>
-            <option>7th Floor</option>
-            <option>8th Floor</option>
-            <option>9th Floor</option>
-            <option>10th Floor</option>
-            <option>Not Applicable</option>
+            <option value="">Floor / Area</option><option>Ground Floor</option><option>1st Floor</option><option>2nd Floor</option><option>3rd Floor</option><option>4th Floor</option><option>5th Floor</option><option>6th Floor</option><option>7th Floor</option><option>8th Floor</option><option>9th Floor</option><option>10th Floor</option><option>Not Applicable</option>
           </select>
-
           <select id="room" required>
-            <option value="">Room / Specific Area</option>
-            <!-- General Building Rooms -->
-            <option>1001</option>
-            <option>1002</option>
-            <option>1003</option>
-            <option>1004</option>
-            <option>1005</option>
-            <option>2001</option>
-            <option>2002</option>
-            <option>2003</option>
-            <option>2004</option>
-            <option>2005</option>
-            <!-- Special Areas -->
-            <option>Canteen Seating Area</option>
-            <option>Canteen Counter</option>
-            <option>Library Reading Room</option>
-            <option>Library Shelves</option>
-            <option>Reception Desk</option>
-            <option>Main Office</option>
-            <option>Common Area / Hallway</option>
-            <option>Washroom</option>
+            <option value="">Room / Specific Area</option><option>1001</option><option>1002</option><option>1003</option><option>1004</option><option>1005</option><option>2001</option><option>2002</option><option>2003</option><option>2004</option><option>2005</option><option>Canteen Seating Area</option><option>Canteen Counter</option><option>Library Reading Room</option><option>Library Shelves</option><option>Reception Desk</option><option>Main Office</option><option>Common Area / Hallway</option><option>Washroom</option>
           </select>
-
         </div>
       </div>
-<div class="form-group">
-        <label>Date (When was it lost/found?)</label>
-        <input type="date" id="date" required>
-      </div>
-
-      <div class="form-group">
-        <label>Description (Details to prove ownership)</label>
-        <textarea id="description" rows="3" placeholder="e.g., Has a scratch on the back, contains a specific ID card, etc." required></textarea>
-      </div>
-
-      <!-- PHOTO UPLOAD -->
-      <div class="form-group">
-        <label>Upload Photo (Optional but helps AI matching)</label>
-        <input type="file" id="photo" accept="image/*">
-      </div>
-
+      <div class="form-group"><label>Date (When was it lost/found?)</label><input type="date" id="date" required></div>
+      <div class="form-group"><label>Description (Details to prove ownership)</label><textarea id="description" rows="3" placeholder="e.g., Has a scratch on the back, contains a specific ID card, etc." required></textarea></div>
+      <div class="form-group"><label>Upload Photo (Optional but helps AI matching)</label><input type="file" id="photo" accept="image/*"></div>
       <button type="submit" class="submit-btn">Submit Report</button>
     </form>
   </div>
-
-    <script>
+  <script>
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
-
-    if (!token || !studentId) {
-      alert('Please login first to report an item.');
-      window.location.href = 'login.html';
-    }
-
+    if (!token || !studentId) { alert('Please login first to report an item.'); window.location.href = '/login'; }
     document.getElementById('reportForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
       const msgBox = document.getElementById('message');
       msgBox.style.display = 'none';
-
       const formData = new FormData();
       formData.append('type', document.querySelector('input[name="type"]:checked').value);
       formData.append('title', document.getElementById('title').value);
@@ -175,43 +82,25 @@
       formData.append('date', document.getElementById('date').value);
       formData.append('description', document.getElementById('description').value);
       formData.append('reportedBy', studentId);
-
       const photoFile = document.getElementById('photo').files[0];
       if (photoFile) formData.append('photo', photoFile);
-
       try {
         msgBox.textContent = "Uploading and analyzing photo... Please wait.";
-        msgBox.style.background = '#e0f2fe';
-        msgBox.style.color = '#0369a1';
-        msgBox.style.display = 'block';
-
-        const response = await fetch('/api/items', {
-          method: 'POST',
-          body: formData
-        });
-
+        msgBox.style.background = '#e0f2fe'; msgBox.style.color = '#0369a1'; msgBox.style.display = 'block';
+        const response = await fetch('/api/items', { method: 'POST', body: formData });
         const data = await response.json();
-
         if (response.ok) {
-          // FIX: Changed data.matchesFound to data.matchedFound
-          if (data.matchedFound > 0) {
-            alert(`Success! We also found ${data.matchedFound} potential match(es) using AI image recognition.`);
-          }
-          
-          msgBox.style.background = '#dcfce7';
-          msgBox.style.color = '#166534';
+          if (data.matchedFound > 0) alert(`Success! We also found ${data.matchedFound} potential match(es) using AI image recognition.`);
+          msgBox.style.background = '#dcfce7'; msgBox.style.color = '#166534';
           msgBox.textContent = 'Item reported successfully! Redirecting to dashboard...';
-          
-          setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+          setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
         } else {
-          msgBox.style.background = '#fee2e2';
-          msgBox.style.color = '#991b1b';
+          msgBox.style.background = '#fee2e2'; msgBox.style.color = '#991b1b';
           msgBox.textContent = data.message || 'Failed to report item.';
         }
       } catch (error) {
-        msgBox.style.background = '#fee2e2';
-        msgBox.style.color = '#991b1b';
-        msgBox.textContent = 'Cannot connect to server. Is the backend running?';
+        msgBox.style.background = '#fee2e2'; msgBox.style.color = '#991b1b';
+        msgBox.textContent = 'Cannot connect to server.';
       }
     });
   </script>

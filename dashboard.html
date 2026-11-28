@@ -43,32 +43,18 @@
     .modal img { max-width: 95%; max-height: 90vh; border-radius: 10px; object-fit: contain; }
     .close-modal { position: absolute; top: 20px; right: 30px; color: white; font-size: 50px; cursor: pointer; }
     .empty-text { color: #64748b; font-style: italic; margin-bottom: 20px;}
-        @media (max-width: 768px) {
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .dashboard-container { padding: 0 15px; margin: 20px auto; }
-    }
-    @media (max-width: 480px) {
-      .stats-row { grid-template-columns: 1fr; }
-      .filter-tabs { flex-wrap: wrap; }
-    }
   </style>
 </head>
 <body style="background: #f8fafc;">
-
   <header>
     <div class="container navbar">
-      <a href="index.html" class="logo"><span class="logo-icon">🔍</span> CampusFind</a>
+      <a href="/" class="logo"><span class="logo-icon">🔍</span> CampusFind</a>
       <nav class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="items.html">All Items</a>
-        <a href="report.html">Report Item</a>
+        <a href="/">Home</a><a href="/items">All Items</a><a href="/report">Report Item</a>
       </nav>
-      <div class="nav-actions">
-        <a href="#" class="btn btn-outline" style="color:#dc2626; border-color:#dc2626;" id="logoutBtn">Logout</a>
-      </div>
+      <div class="nav-actions"><a href="#" class="btn btn-outline" style="color:#dc2626; border-color:#dc2626;" id="logoutBtn">Logout</a></div>
     </div>
   </header>
-
   <div class="dashboard-container">
     <div class="stats-row">
       <div class="stat-box"><h2 id="statTotal">0</h2><p>My Posts</p></div>
@@ -77,48 +63,27 @@
       <div class="stat-box"><h2 id="statOpen">0</h2><p>Still open</p></div>
       <div class="stat-box"><h2 id="statResolved">0</h2><p>Resolved</p></div>
     </div>
-
-    <div class="alert-banner" id="alertBanner">
-      <h3>🔔 Action Needed!</h3>
-      <div id="alertContainer"></div>
-    </div>
-
+    <div class="alert-banner" id="alertBanner"><h3>🔔 Action Needed!</h3><div id="alertContainer"></div></div>
     <h2 class="section-title matches">🔔 Potential AI Matches (Private)</h2>
-    <div class="items-grid" id="matchesGrid">
-      <p class="empty-text">Checking for matches...</p>
-    </div>
-
+    <div class="items-grid" id="matchesGrid"><p class="empty-text">Checking for matches...</p></div>
     <h2 class="section-title">My Reported Items</h2>
     <div class="filter-tabs">
       <button class="tab-btn active" onclick="filterItems('all')">All</button>
       <button class="tab-btn" onclick="filterItems('open')">Open</button>
       <button class="tab-btn" onclick="filterItems('resolved')">Resolved</button>
     </div>
-    <div class="items-grid" id="myItemsGrid">
-      <p class="empty-text">Loading your items...</p>
-    </div>
-
+    <div class="items-grid" id="myItemsGrid"><p class="empty-text">Loading your items...</p></div>
     <h2 class="section-title">Items I Requested / Claimed</h2>
-    <div class="items-grid" id="claimsGrid">
-      <p class="empty-text">Loading claims...</p>
-    </div>
+    <div class="items-grid" id="claimsGrid"><p class="empty-text">Loading claims...</p></div>
   </div>
-
-  <div class="modal" id="imageModal">
-    <span class="close-modal" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
-    <img id="modalImage" src="" alt="Item Photo">
-  </div>
-
-          <script>
+  <div class="modal" id="imageModal"><span class="close-modal" onclick="document.getElementById('imageModal').style.display='none'">&times;</span><img id="modalImage" src="" alt="Item Photo"></div>
+  <script>
     const token = localStorage.getItem('token');
     const studentId = localStorage.getItem('studentId');
-
-    if (!token || !studentId) window.location.href = 'login.html';
+    if (!token || !studentId) window.location.href = '/login';
 
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
-      e.preventDefault();
-      localStorage.clear();
-      window.location.href = 'login.html';
+      e.preventDefault(); localStorage.clear(); window.location.href = '/login';
     });
 
     let allMyItemsData = []; 
@@ -127,7 +92,6 @@
       try {
         const itemsRes = await fetch(`/api/items/my-items/${studentId}`);
         const myItems = await itemsRes.json();
-
         const claimsRes = await fetch(`/api/items/my-claims/${studentId}`);
         const myClaims = await claimsRes.json();
 
@@ -149,13 +113,10 @@
               </div>
             </div>
           `).join('');
-        } else {
-          document.getElementById('alertBanner').style.display = 'none';
-        }
+        } else { document.getElementById('alertBanner').style.display = 'none'; }
 
         const matchesGrid = document.getElementById('matchesGrid');
         matchesGrid.innerHTML = '<p class="empty-text">🤖 AI is analyzing descriptions for matches...</p>';
-        
         const matchesRes = await fetch(`/api/items/matches/${studentId}`);
         const matches = await matchesRes.json();
 
@@ -176,7 +137,6 @@
             const photoAllowed = item.iAmFoundReporter || item.matchApproved;
             const photoId = item.photoItemId;
             const badgeColor = item.matchPercentage > 70 ? '#16a34a' : '#d97706';
-
             return `
             <div class="item-card match-card" style="border: 2px solid #fcd34d;">
               ${item.photoHasPhoto && photoAllowed
@@ -218,19 +178,12 @@
                   <h3 class="item-title">${item.title}</h3>
                   <p class="item-detail">Reporter: ${item.reportedBy}</p>
                 </div>
-                <div class="actions">
-                  ${item.hasPhoto ? `<button class="btn-sm btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}
-                </div>
+                <div class="actions">${item.hasPhoto ? `<button class="btn-sm btn-view" onclick="viewPhoto('${item._id}')">View Photo</button>` : ''}</div>
               </div>
             </div>
           `).join('');
         }
-
-      } catch (error) {
-        console.error("Dashboard Load Error:", error);
-        document.getElementById('matchesGrid').innerHTML = '<p class="empty-text" style="color:red;">Failed to load data.</p>';
-        document.getElementById('myItemsGrid').innerHTML = '<p class="empty-text" style="color:red;">Failed to load data.</p>';
-      }
+      } catch (error) { console.error("Dashboard Load Error:", error); }
     }
 
     function renderMyGrid(filter) {
@@ -238,12 +191,7 @@
       let filtered = allMyItemsData;
       if (filter === 'open') filtered = allMyItemsData.filter(i => i.status === 'open');
       if (filter === 'resolved') filtered = allMyItemsData.filter(i => i.status === 'claimed' || i.status === 'resolved');
-
-      if (filtered.length === 0) {
-        grid.innerHTML = '<p class="empty-text">No items found for this filter.</p>';
-        return;
-      }
-
+      if (filtered.length === 0) { grid.innerHTML = '<p class="empty-text">No items found.</p>'; return; }
       grid.innerHTML = filtered.map(item => `
         <div class="item-card">
           ${item.hasPhoto 
@@ -274,9 +222,7 @@
 
     async function confirmMatch(id) {
       if (!confirm('Are you sure this is the correct item?')) return;
-      const response = await fetch(`/api/items/${id}/confirm-match`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId })
-      });
+      const response = await fetch(`/api/items/${id}/confirm-match`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId }) });
       const data = await response.json();
       if (!response.ok) return alert(data.message);
       alert('Match confirmed!'); loadDashboard();
@@ -284,19 +230,14 @@
 
     async function requestClaim(id) {
       if (!confirm('Request this item?')) return;
-      const res = await fetch(`/api/items/${id}/claim`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requester: studentId })
-      });
+      const res = await fetch(`/api/items/${id}/claim`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requester: studentId }) });
       const data = await res.json();
-      if(res.ok) { alert('Request sent!'); loadDashboard(); } 
-      else alert(data.message); 
+      if(res.ok) { alert('Request sent!'); loadDashboard(); } else alert(data.message); 
     }
 
     async function handleApproval(id, action) {
       if (!confirm(`Are you sure you want to ${action} this claim?`)) return;
-      const response = await fetch(`/api/items/${id}/${action}`, { 
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentId })
-      });
+      const response = await fetch(`/api/items/${id}/${action}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentId }) });
       const data = await response.json();
       if (!response.ok) return alert(data.message);
       alert(`Claim ${action}d!`); loadDashboard();
@@ -304,9 +245,7 @@
 
     async function deleteItem(id) {
       if (!confirm('Delete this report?')) return;
-      await fetch(`/api/items/${id}`, { 
-        method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentId })
-      });
+      await fetch(`/api/items/${id}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: studentId }) });
       loadDashboard();
     }
 
@@ -316,17 +255,10 @@
       img.src = ''; modal.style.display = 'flex';
       try {
         const response = await fetch(`/api/items/${id}/photo?requester=${studentId}`);
-        if (response.ok) {
-          const blob = await response.blob();
-          img.src = URL.createObjectURL(blob);
-        } else {
-          const err = await response.json();
-          alert(err.message || 'Access denied.');
-          modal.style.display = 'none';
-        }
+        if (response.ok) { const blob = await response.blob(); img.src = URL.createObjectURL(blob); }
+        else { const err = await response.json(); alert(err.message || 'Access denied.'); modal.style.display = 'none'; }
       } catch (error) { alert('Failed to load photo.'); modal.style.display = 'none'; }
     }
-
     loadDashboard();
   </script>
 </body>
